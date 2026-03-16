@@ -1,4 +1,5 @@
-🏥 NaviMed Navigator Architecture
+**🏥 NaviMed Navigator Architecture**
+
 **1. System Overview**
 
 NaviMed Navigator is a specialized RAG-based AI agent designed to provide reliable, patient-aware assistance. The system ensures high-fidelity information retrieval from sensitive medical documents.
