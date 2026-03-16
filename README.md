@@ -15,8 +15,13 @@ NaviMed is a patient-centric "Navigator App" platform that replaces static healt
     Data Integrity: Architected for high-integrity data pipelines to ensure secure and accurate medical information delivery.
 
 ### Team
+
 Robert Baer
+
 April Duley
+
 Debaris Ezumah
+
 Meenakshi Sundaram Venkatanarayanan
+
 Vijayshankar Mishra
