@@ -14,10 +14,9 @@ NaviMed is a patient-centric "Navigator App" platform that replaces static healt
 
     Data Integrity: Architected for high-integrity data pipelines to ensure secure and accurate medical information delivery.
 
-### Possible Tech Stack
-
-    Frontend: React (Vite), Tailwind CSS
-
-    Intelligence: Generative AI / LLM integration for natural language processing. API Integration.
-
-    Data: Custom algorithms for predictive scheduling and logistical automation.
+### Team
+Robert Baer
+April Duley
+Debaris Ezumah
+Meenakshi Sundaram Venkatanarayanan
+Vijayshankar Mishra
