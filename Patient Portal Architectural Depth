@@ -1,0 +1,821 @@
+# Patient Portal AI Architecture
+
+---
+
+## Table of Contents
+
+- [1) Executive Summary](#1-executive-summary)
+- [2) End-to-End Workflow](#2-end-to-end-workflow)
+- [3) System Architecture (Tree)](#3-system-architecture-tree)
+- [4) AI Agent Workflow (Dynamic)](#4-ai-agent-workflow-dynamic)
+- [5) AI Agent Architecture (Structural)](#5-ai-agent-architecture-structural)
+- [6) Tools and Integrations](#6-tools-and-integrations)
+- [7) Event-Driven Backbone](#7-event-driven-backbone)
+- [8) Security, Governance, and Ethics](#8-security-governance-and-ethics)
+- [9) Metrics and Outcomes](#9-metrics-and-outcomes)
+- [10) Implementation Roadmap](#10-implementation-roadmap)
+- [11) Optional: Intelligence and Reasoning Design](#11-optional-intelligence-and-reasoning-design)
+
+---
+
+## 1) Executive Summary
+
+The platform combines AI-guided scheduling, day-of travel support, waiting-room intake, provider summary generation, post-visit surveys, and future follow-up reminders to improve access, efficiency, and continuity of care.
+
+---
+
+## 2) End-to-End Workflow
+
+### Patient Journey (Tree)
+
+```text
+Patient Care Workflow
+├── 1. Patient opens portal and enters symptom/concern
+├── 2. AI suggests providers and appointment slots
+├── 3. Patient schedules or reschedules
+├── 4. AI confirms appointment and sets reminders/calendar hooks
+├── 5. Day-of AI checks traffic and suggests departure time
+├── 6. Patient arrives and checks in
+├── 7. AI waiting-room assistant collects updates/questions
+├── 8. AI generates provider summary
+├── 9. Provider reviews summary and conducts focused visit
+└── 10. Post-visit engagement and continuity
+    ├── 10.1 Visit completion event is received
+    ├── 10.2 Patient receives post-visit reminder
+    ├── 10.3 Patient receives quick experience survey
+    ├── 10.4 Follow-up plan starts (typically 6-12 months)
+    ├── 10.5 System monitors provider schedule availability
+    ├── 10.6 Alert sent when relevant future slots open
+    └── 10.7 Patient books next visit directly in portal
+```
+
+### Workflow Diagram
+
+```mermaid
+flowchart TD
+    A[Patient enters symptom/concern] --> B[AI suggests provider and slots]
+    B --> C[Patient books/reschedules]
+    C --> D[AI confirms + reminders + calendar]
+    D --> E[Day-of traffic check + departure suggestion]
+    E --> F[Patient check-in]
+    F --> G[AI waiting room intake]
+    G --> H[AI summary for provider]
+    H --> I[Focused appointment]
+    I --> J[Visit completed event]
+    J --> K[Post-visit reminder]
+    J --> L[Survey prompt]
+    J --> M[Follow-up window set 6-12 months]
+    M --> N[Monitor future schedule openings]
+    N --> O[Notify patient to book follow-up]
+    O --> P[Patient books in portal]
+```
+
+---
+
+## 3) System Architecture (Tree)
+
+```text
+Patient Portal Platform
+├── Patient App (Web/Mobile)
+│   ├── Symptom intake
+│   ├── Booking/rescheduling
+│   ├── Check-in
+│   ├── Reminder center
+│   ├── Survey completion
+│   └── Follow-up booking
+├── API Gateway / Backend-for-Frontend
+│   ├── Auth/session handling
+│   ├── API orchestration
+│   └── Client-specific response shaping
+├── AI Agent Layer
+│   ├── Intake Assistant
+│   ├── Scheduling Copilot
+│   ├── Waiting Room Assistant
+│   ├── Provider Summary Generator
+│   └── Reminder Personalization Agent
+├── Scheduling System
+│   ├── Availability and slot inventory
+│   ├── Booking/rescheduling engine
+│   ├── Rules and constraints
+│   └── Future schedule publication (6-12 month windows)
+├── Notification and Engagement Service
+│   ├── Push/SMS/email delivery
+│   ├── Reminder campaigns
+│   ├── Survey workflows
+│   └── Follow-up schedule-open alerts
+├── Event Bus + Workflow Orchestrator
+│   ├── Lifecycle event publishing
+│   ├── Async coordination
+│   ├── Retry and dead-letter handling
+│   └── Idempotent execution
+├── External Integrations
+│   ├── Maps/Traffic API
+│   └── Transportation services
+├── EHR / Provider Dashboard
+│   ├── Encounter updates
+│   ├── AI summary display
+│   └── Visit completion trigger source
+└── Analytics and Reporting
+    ├── Satisfaction insights
+    ├── Follow-up conversion
+    ├── No-show/lateness trends
+    └── Scheduling optimization feedback
+```
+
+---
+
+## 4) AI Agent Workflow (Dynamic)
+
+### Workflow Description
+
+- **Goal:** turn patient intent into safe, useful next actions.
+- **Trigger:** patient request or system event (e.g., `VisitCompleted`, schedule opening).
+- **Output:** recommendations, notifications, summaries, and full decision trace logs.
+
+### Decision Points
+
+```text
+Decision Flow
+├── D1: Intent + urgency classification
+│   └── Route to self-service scheduling or escalation path
+├── D2: Provider/slot recommendation strategy
+│   └── Rank by rules, continuity, proximity, preference
+├── D3: Reminder/notification strategy
+│   └── Send timing and channel based on consent + context
+├── D4: Post-visit follow-up strategy
+│   └── Monitor future schedules and trigger booking prompts
+└── D5: Human handoff decision
+    └── Escalate when confidence/risk thresholds fail
+```
+
+### Human-in-the-Loop Moments
+
+- Provider reviews AI summary before clinical use.
+- Staff resolves schedule conflicts and complex exceptions.
+- High-risk outputs are escalated for manual review.
+- Compliance team audits sampled AI traces and incidents.
+
+### Failure Strategy Nodes
+
+```text
+Failure Handling
+├── Missing data
+│   ├── Request required fields
+│   └── Use conservative fallback recommendations
+├── External API outage
+│   ├── Retry with backoff
+│   ├── Switch to backup integration if available
+│   └── Notify patient with fallback path
+├── Scheduling conflict
+│   ├── Re-query slot inventory
+│   └── Offer nearest valid alternatives
+└── Low AI confidence
+    ├── Block autonomous action
+    └── Route to human queue
+```
+
+---
+
+## 5) AI Agent Architecture (Structural)
+
+### Agent Overview
+
+- **Purpose:** safe, explainable automation across scheduling and visit support.
+- **Design:** one orchestrated platform with specialized agent modules.
+
+### Agent Roles
+
+| Agent | Responsibility | Key Decisions |
+|---|---|---|
+| Intake & Intent Agent | Understand need and urgency | classify intent, choose workflow |
+| Scheduling Optimization Agent | Recommend provider/slot options | ranking tradeoffs: time/continuity/distance/rules |
+| Encounter Preparation Agent | Capture updates and generate summary | include/exclude context, highlight risks/questions |
+| Engagement & Continuity Agent | Post-visit reminders, survey, follow-up prompts | timing/cadence/channel/re-engagement path |
+
+### Structural Diagram (Mermaid)
+
+```mermaid
+flowchart LR
+    A[Perception/Input Module] --> B[Planning + Policy Module]
+    B --> C[Knowledge + Memory Module]
+    C --> D[Tool Connector Module]
+    D --> E[Action/Execution Module]
+
+    D --> D1[Scheduling APIs]
+    D --> D2[EHR APIs]
+    D --> D3[Maps/Traffic APIs]
+    D --> D4[Notification APIs]
+    D --> D5[Analytics Store]
+```
+
+### Why This Architecture
+
+- Separates policy/clinical risk logic from UI concerns.
+- Supports asynchronous, scalable workflows.
+- Improves auditability by module and decision point.
+- Enables policy changes without deep rewrites.
+
+---
+
+## 6) Tools and Integrations
+
+| Tool/Service | Used For | Integration Type | Executable vs Autonomy |
+|---|---|---|---|
+| LLM Service | intent extraction, summarization, message drafting | API | workflow-invoked with policy constraints |
+| Scheduling System | slot lookup, booking, rescheduling, follow-up windows | REST/FHIR/GraphQL | automated after user confirmation |
+| EHR / Provider Dashboard | encounter status, context, summary display | FHIR/HL7/API | event-triggered + provider-verified |
+| Notification Provider | push/SMS/email reminders and alerts | API/Webhook | automated dispatch via preferences |
+| Maps/Traffic API | travel estimates and departure guidance | REST API | recommendation only |
+| Transportation Integration | ride options/deep links | API/Deep link | user-verified |
+| Event Bus | lifecycle event processing | Stream/Queue | core automation backbone |
+| Workflow Orchestrator | long-running flows, retries, compensations | Workflow engine | automated + manual override |
+| SQL Database | appointments, consent, workflow logs | SQL | system-managed transactions |
+| Analytics Warehouse | KPIs, model feedback loops | ETL/ELT | batch + near-real-time |
+
+### Notes on Constraints
+
+```text
+Constraints
+├── Latency: booking endpoints and reminders must meet SLA
+├── Quotas: external API rate limiting and budget controls
+├── Security: PHI minimization and scoped service credentials
+└── Reliability: idempotency, retries, dead-letter queues, replay
+```
+
+---
+
+## 7) Event-Driven Backbone
+
+### Lifecycle Events
+
+```text
+Appointment Lifecycle Events
+├── AppointmentBooked
+├── AppointmentRescheduled
+├── ReminderScheduled
+├── DayOfTrafficReminderSent
+├── PatientCheckedIn
+├── WaitingRoomDataCaptured
+├── ProviderSummaryGenerated
+├── VisitCompleted
+├── PostVisitReminderSent
+├── SurveyRequested
+├── SurveyCompleted
+├── FollowUpWindowStarted
+├── ProviderScheduleOpened
+├── FollowUpPromptSent
+└── FollowUpBooked
+```
+
+### Minimum Event Payload
+
+`event_id`, `event_type`, `aggregate_id`, `occurred_at`, `source_system`, `correlation_id`, `version`, `idempotency_key`
+
+---
+
+## 8) Security, Governance, and Ethics
+
+### Security and Compliance Controls
+
+```text
+Healthcare Security Controls
+├── Encryption in transit and at rest
+├── RBAC/ABAC access controls
+├── Least-privilege data access for AI/services
+├── Consent management for notifications and surveys
+├── Full audit logging
+└── Data retention/deletion policy enforcement
+```
+
+### Ethical Considerations
+
+- **Fairness:** monitor recommendation outcomes across patient groups.
+- **Transparency:** provide rationale views for patient/provider decisions.
+- **Respect and autonomy:** support opt-out and preference controls.
+- **Privacy:** minimize PHI exposure, especially to third-party tools.
+- **Accountability:** define owners, escalation process, and incident playbooks.
+
+### Governance and Monitoring
+
+```text
+Governance Framework
+├── Internal launch gates
+│   ├── Product signoff
+│   ├── Clinical signoff
+│   └── Compliance/security signoff
+├── Standards alignment
+│   ├── Trustworthy AI principles
+│   └── Applicable healthcare privacy regulations
+└── Ongoing audits
+    ├── Continuous policy checks
+    ├── Quarterly fairness/performance reviews
+    └── Model/prompt version traceability
+```
+
+---
+
+## 9) Metrics and Outcomes
+
+### Operational KPIs
+
+- Booking success rate
+- Reminder delivery and engagement rates
+- Workflow failures, retries, and queue lag
+- AI fallback/error rate
+
+### Experience and Outcome KPIs
+
+- Survey completion rate
+- CSAT/NPS trends
+- No-show and lateness reduction
+- Follow-up prompt-to-book conversion
+- Continuity-of-care improvement over 6-12 months
+
+---
+
+## 10) Implementation Roadmap
+
+```text
+Roadmap
+├── Phase 1: Core scheduling + reminders
+│   ├── Booking/rescheduling
+│   ├── Scheduling integration
+│   └── Notification baseline
+├── Phase 2: AI-assisted visit prep
+│   ├── Intake assistant
+│   ├── Waiting-room assistant
+│   └── Provider summary generation
+├── Phase 3: Post-visit engagement
+│   ├── Survey automation
+│   ├── Follow-up window logic (6-12 months)
+│   ├── Schedule-open monitoring
+│   └── Direct follow-up self-scheduling
+└── Phase 4: Optimization and scaling
+    ├── Personalization tuning
+    ├── Capacity-aware scheduling improvements
+    └── Closed-loop quality and efficiency insights
+```
+
+---
+
+## 11) Optional: Intelligence and Reasoning Design
+
+<details>
+<summary><strong>Expand technical reasoning design</strong></summary>
+
+### Knowledge and Retrieval
+
+```text
+Knowledge/RAG
+├── Sources
+│   ├── Scheduling rules and templates
+│   ├── Consent and patient preference data
+│   ├── Visit-type follow-up policies
+│   └── Operational playbooks
+├── Retrieval strategy
+│   ├── Context-scoped retrieval
+│   ├── Freshness checks for availability
+│   └── Schema-based output validation
+└── Freshness controls
+    ├── Event-driven cache invalidation
+    └── TTL on volatile data
+```
+
+### Reasoning and Decision Model
+
+```text
+Reasoning
+├── Classification: intent and urgency
+├── Planning: best next action
+├── Ranking: provider/slot optimization
+├── Validation: policy + confidence checks
+└── Escalation: human review for low confidence/high risk
+```
+
+### Multi-Agent Logic (if enabled)
+
+```text
+Coordination Pattern
+├── Supervisory orchestrator with specialist agents
+├── Sequential path: intake -> scheduling -> engagement
+├── Parallel path: notifications + monitoring + analytics
+└── Human escalation queue on uncertainty or policy conflicts
+```
+
+### Risks and Mitigations
+
+```text
+Risks
+├── Technical: event drift, third-party downtime
+├── Data/model: stale data, recommendation bias
+└── Mitigation: pre-booking revalidation, drift monitoring, safe defaults
+```
+
+</details>
+
+---
+
+## Share Notes
+
+- Designed for direct use in GitHub README/docs pages.
+- Mermaid blocks render natively on GitHub for visual flow.
+- `<details>` section keeps advanced content available without clutter.
+# Patient Portal AI Architecture (Tree Format)
+
+Shareable architecture outline for the AI-assisted patient journey, including post-visit survey and long-range follow-up scheduling notifications.
+
+## 1) System Landscape
+
+Patient Portal Platform
+├── Patient App (Web/Mobile)
+│   ├── Symptom intake
+│   ├── Appointment booking and rescheduling
+│   ├── Check-in experience
+│   ├── Reminder center
+│   ├── Survey completion
+│   └── Follow-up scheduling
+├── API Gateway / Backend-for-Frontend (BFF)
+│   ├── Auth and session handling
+│   ├── Request orchestration
+│   ├── Patient-facing APIs
+│   └── Response shaping for mobile/web clients
+├── AI Agent Layer
+│   ├── Intake Assistant
+│   │   ├── Captures symptom/concern context
+│   │   └── Structures data for scheduling and triage routing
+│   ├── Scheduling Copilot
+│   │   ├── Recommends provider options
+│   │   └── Ranks appointment slots based on rules and patient preferences
+│   ├── Waiting Room Assistant
+│   │   ├── Collects updates before provider arrives
+│   │   └── Captures patient questions and concerns
+│   ├── Provider Summary Generator
+│   │   ├── Produces concise pre-visit summary
+│   │   └── Highlights key context for focused appointments
+│   └── Reminder Personalization Agent
+│       ├── Adjusts reminder timing and tone
+│       └── Honors consent and channel preferences
+├── Scheduling System
+│   ├── Provider availability calendar
+│   ├── Appointment rules and constraints
+│   ├── Booking / rescheduling engine
+│   ├── Future schedule publication
+│   └── Follow-up eligibility windows (6-12 months)
+├── Notification and Engagement Service
+│   ├── Push, SMS, email delivery
+│   ├── Campaign and workflow templates
+│   ├── Survey trigger workflows
+│   └── Follow-up booking alerts
+├── Event Bus + Workflow Orchestrator
+│   ├── Lifecycle event publishing
+│   ├── Async process coordination
+│   ├── Retry and dead-letter handling
+│   └── Idempotent workflow execution
+├── External Integrations
+│   ├── Maps / Traffic API
+│   │   ├── Real-time travel estimates
+│   │   └── Departure-time recommendations
+│   └── Transportation Services
+│       ├── Ride options/deep links
+│       └── Late-arrival mitigation support
+├── EHR / Provider Dashboard
+│   ├── Encounter and status updates
+│   ├── AI summary display
+│   ├── Provider review workflow
+│   └── Visit completion trigger source
+└── Analytics and Reporting
+    ├── Satisfaction trends
+    ├── Follow-up conversion
+    ├── No-show and lateness metrics
+    └── Capacity and scheduling optimization insights
+
+## 2) End-to-End Patient Journey
+
+Patient Care Workflow
+├── Step 1: Patient opens portal and enters symptom/concern
+├── Step 2: AI suggests providers and appointment slots
+├── Step 3: Patient schedules or reschedules appointment
+├── Step 4: AI confirms booking and adds reminders/calendar hooks
+├── Step 5: Day-of reminder checks traffic and suggests departure time
+├── Step 6: Patient arrives and checks in
+├── Step 7: AI waiting room assistant collects updates/questions
+├── Step 8: AI creates summary for provider
+├── Step 9: Provider reviews summary and conducts focused visit
+└── Step 10: Post-visit engagement and continuity flow
+    ├── 10.1 Visit completion event received
+    ├── 10.2 Patient receives post-visit reminder notification
+    ├── 10.3 Patient receives quick experience survey prompt
+    ├── 10.4 Follow-up plan initialized (typically 6-12 months)
+    ├── 10.5 System monitors provider schedule availability
+    ├── 10.6 Alert sent when matching future schedules open
+    └── 10.7 Patient schedules next appointment directly in portal
+
+## 3) Event-Driven Backbone
+
+Appointment Lifecycle Events
+├── AppointmentBooked
+├── AppointmentRescheduled
+├── ReminderScheduled
+├── DayOfTrafficReminderSent
+├── PatientCheckedIn
+├── WaitingRoomDataCaptured
+├── ProviderSummaryGenerated
+├── VisitCompleted
+├── PostVisitReminderSent
+├── SurveyRequested
+├── SurveyCompleted
+├── FollowUpWindowStarted
+├── ProviderScheduleOpened
+├── FollowUpPromptSent
+└── FollowUpBooked
+
+Each Event Payload (Minimum)
+├── event_id
+├── event_type
+├── aggregate_id (patient/appointment/encounter reference)
+├── occurred_at
+├── source_system
+├── correlation_id
+├── version
+└── idempotency_key
+
+## 4) AI Governance and Safety
+
+AI Guardrails
+├── Constrained recommendations (rule-first enforcement)
+├── Structured output schemas
+├── Clinical safety boundaries (advisory, not autonomous diagnosis)
+├── Provider-in-the-loop review for visit summaries
+├── Prompt/output auditability
+└── Escalation paths for uncertain/high-risk cases
+
+## 5) Security and Compliance
+
+Healthcare Security Controls
+├── Encryption in transit and at rest
+├── Role-based and attribute-based access controls
+├── Least-privilege data access for AI and services
+├── Consent management (notifications, channels, survey)
+├── Full audit logging
+└── Data retention and deletion policies
+
+## 6) Measurement Framework
+
+Operational KPIs
+├── Booking success rate
+├── Notification delivery and engagement
+├── Workflow failure and retry rates
+└── AI fallback/error rates
+
+Experience and Outcome KPIs
+├── Survey completion rate
+├── Patient satisfaction (CSAT/NPS)
+├── No-show reduction
+├── Follow-up prompt-to-book conversion
+└── Continuity-of-care improvement over 6-12 months
+
+## 7) Build Phases
+
+Roadmap
+├── Phase 1: Core scheduling + reminders
+│   ├── Patient booking and rescheduling
+│   ├── Scheduling integration
+│   └── Notification baseline
+├── Phase 2: AI-assisted visit prep
+│   ├── Intake assistant
+│   ├── Waiting room assistant
+│   └── Provider summary generation
+├── Phase 3: Post-visit engagement (new feature)
+│   ├── Survey automation
+│   ├── Follow-up window logic (6-12 months)
+│   ├── Schedule-open monitoring
+│   └── Direct follow-up self-scheduling
+└── Phase 4: Optimization and scaling
+    ├── Personalization tuning
+    ├── Capacity-aware scheduling improvements
+    └── Closed-loop quality and efficiency insights
+
+## 8) Executive One-Line Summary
+
+The platform combines AI-guided scheduling, real-time day-of support, provider-ready visit summaries, and post-visit survey/follow-up automation to improve access, patient experience, and long-term continuity of care.
+
+## 9) AI Agent Workflow (Dynamic Process)
+
+Workflow Description
+├── Goal
+│   ├── Convert patient intent into safe, useful actions
+│   └── Keep patient and provider informed at each step
+├── Trigger
+│   ├── User request in portal (symptom, booking, check-in, follow-up)
+│   └── System event (visit completed, schedule opened)
+└── Output
+    ├── Recommended actions (slots, reminders, summaries)
+    └── Logged decision trace for auditing
+
+Decision Points
+├── D1: Intent and urgency classification
+│   ├── Inputs: symptom text, patient history snapshot, rule thresholds
+│   └── Decision: self-schedule flow vs escalated triage path
+├── D2: Scheduling recommendation strategy
+│   ├── Inputs: provider rules, availability, continuity preference, distance
+│   └── Decision: ranked slot/provider options
+├── D3: Notification and reminder strategy
+│   ├── Inputs: consent, preferred channel, time window, travel ETA
+│   └── Decision: send now, delay, or suppress
+├── D4: Post-visit follow-up logic
+│   ├── Inputs: visit type, provider policy, follow-up due window
+│   └── Decision: monitor schedule and trigger alert when slots open
+└── D5: Human handoff determination
+    ├── Inputs: confidence score, risk flags, patient response
+    └── Decision: continue automation or handoff to staff/provider
+
+Human-in-the-Loop Moments
+├── Provider reviews AI visit summary before clinical use
+├── Staff handles edge-case scheduling conflicts
+├── Clinical escalation on high-risk symptom patterns
+└── Compliance team reviews sampled AI traces and incidents
+
+Failure Strategy Nodes
+├── If data missing
+│   ├── Ask patient for minimal missing fields
+│   └── Fallback to conservative recommendations
+├── If external API fails (maps/transport/notification)
+│   ├── Retry with backoff
+│   ├── Switch to backup provider where available
+│   └── Notify patient with non-blocking fallback message
+├── If scheduling conflict occurs
+│   ├── Re-query availability
+│   └── Offer nearest alternatives
+└── If AI confidence below threshold
+    ├── Suppress autonomous action
+    └── Route to human queue
+
+## 10) AI Agent Architecture (Structural Design)
+
+Agent Overview
+├── Purpose: Deliver safe, explainable automation for patient scheduling and visit support
+└── Value: Faster access, better preparedness, stronger continuity of care
+
+Agent Roles (Single System with Specialized Modules)
+├── Agent 1: Intake and Intent Agent
+│   ├── Responsibility: Understand patient need and urgency
+│   └── Key Decisions: classify intent, select proper downstream workflow
+├── Agent 2: Scheduling Optimization Agent
+│   ├── Responsibility: Recommend best provider/slot combinations
+│   └── Key Decisions: ranking tradeoffs across time, continuity, travel, policy
+├── Agent 3: Encounter Preparation Agent
+│   ├── Responsibility: Capture pre-visit updates and build provider summary
+│   └── Key Decisions: include/exclude details, highlight risks/questions
+└── Agent 4: Engagement and Continuity Agent
+    ├── Responsibility: Post-visit reminders, surveys, follow-up prompts
+    └── Key Decisions: send timing, cadence, and re-engagement path
+
+Architecture Diagram (Text Tree)
+AI Agent Runtime
+├── Perception / Input Module
+│   ├── Patient app requests
+│   ├── EHR encounter events
+│   └── Schedule publication events
+├── Planning and Policy Module
+│   ├── Clinical and scheduling rule evaluation
+│   ├── Decision tree selection
+│   └── Risk and confidence gating
+├── Knowledge and Memory Module
+│   ├── Session context
+│   ├── Patient preferences and consent
+│   └── Historical outcomes and survey trends
+├── Tool Connector Module
+│   ├── Scheduling APIs
+│   ├── EHR APIs
+│   ├── Maps/Traffic APIs
+│   ├── Notification APIs
+│   └── Analytics store
+└── Action / Execution Module
+    ├── Slot recommendations
+    ├── Reminder/survey dispatch
+    ├── Summary generation
+    └── Human handoff task creation
+
+Why This Architecture
+├── Separates clinical-risk decisions from UI logic
+├── Supports asynchronous event-driven execution at scale
+├── Enables clear auditability by module and decision point
+└── Makes policy changes easy without rewriting agent logic
+
+## 11) Tools and Integrations
+
+Tools List and Purpose
+
+| Tool/Service | Used for | Integration Type | Executable vs autonomy |
+|---|---|---|---|
+| LLM Service | Intent extraction, summarization, response drafting | API | Invoked by workflow with policy constraints |
+| Scheduling System | Slot lookup, booking, rescheduling, follow-up windows | REST/FHIR/GraphQL (org dependent) | Automated action after user confirmation |
+| EHR / Provider Dashboard | Encounter state, clinical context, summary display | FHIR/HL7/API | Event-triggered + provider-verified steps |
+| Notification Provider | Push/SMS/email reminders and alerts | API/Webhook | Automated dispatch with user preferences |
+| Maps/Traffic API | Travel estimates and departure recommendations | REST API | Automated suggestion only |
+| Transportation Integrations | Ride options for late-risk arrivals | API/Deep link | User-verified step |
+| Event Bus (Kafka/SNS/SQS/PubSub) | Reliable lifecycle event processing | Stream/Queue | Automated orchestration backbone |
+| Workflow Orchestrator | Long-running stateful workflows and retries | Workflow engine | Automated with manual override |
+| Database (SQL) | Transactional records (appointments, consent, logs) | SQL | System managed |
+| Analytics Warehouse | KPI tracking and model feedback | ETL/ELT | Batch and near-real-time pipelines |
+
+Notes on Constraints
+├── Latency
+│   ├── Booking APIs target low response time
+│   └── Notifications should dispatch within operational SLA
+├── Quotas and rate limits
+│   ├── External API budget guards required
+│   └── Queue-based buffering prevents traffic spikes
+├── Security and PHI handling
+│   ├── Data minimization to external providers
+│   └── Token-scoped service-to-service access
+└── Reliability
+    ├── Idempotent event handling
+    └── Dead-letter queues + replay workflows
+
+## 12) Optional: Intelligence and Reasoning Design
+
+Knowledge and Retrieval
+├── Required knowledge
+│   ├── Scheduling rules and physician templates
+│   ├── Patient preferences and consent status
+│   ├── Visit-type follow-up intervals
+│   └── Operational policies (reminder windows, escalation)
+├── RAG strategy
+│   ├── Sources: policy docs, scheduling DB, EHR metadata, integration configs
+│   ├── Retrieval logic: patient/context scoped retrieval with freshness checks
+│   └── Accuracy controls: schema validation and policy-grounded prompting
+└── Freshness controls
+    ├── Event-driven cache invalidation
+    └── TTL limits for availability data
+
+Reasoning and Decisions
+├── Decision categories
+│   ├── Classification (intent/urgency)
+│   ├── Planning (next-best action)
+│   ├── Ranking (slot/provider optimization)
+│   └── Validation (policy and confidence checks)
+├── Evaluation loop
+│   ├── Confidence thresholds gate automation
+│   ├── Rule checks prevent unsafe actions
+│   └── Human review for low-confidence/high-risk outputs
+└── Continuous improvement
+    ├── Survey + operational outcomes feed analytics
+    └── Monthly policy/model tuning cadence
+
+Multi-Agent Logic (If Used)
+├── Pattern: supervisory orchestration with specialist sub-agents
+├── Sequencing: intake -> schedule -> engagement
+├── Parallelism: notifications, monitoring, analytics processing
+└── Escalation: supervisor routes to human queue on uncertainty
+
+Risks and Constraints
+├── Technical risks
+│   ├── Event timing drift across systems
+│   └── Third-party downtime
+├── Data/model risks
+│   ├── Stale availability causing poor recommendations
+│   └── Biased ranking if historical data is skewed
+└── Mitigations
+    ├── Real-time validation before final booking action
+    ├── Fairness and drift monitoring
+    └── Fail-safe defaults + human override
+
+## 13) Governance and Ethics
+
+Ethical Considerations
+├── Fairness and anti-bias
+│   ├── Compare recommendation quality across demographics
+│   ├── Detect disparate wait times or access outcomes
+│   └── Apply policy corrections when inequities are found
+├── Transparency and explainability
+│   ├── Patient-facing explanations for scheduling recommendations
+│   ├── Provider-facing rationale for summary highlights
+│   └── Decision trace logging for audits
+├── Respect for rights and autonomy
+│   ├── User control over reminder channels/frequency
+│   ├── Opt-out support for non-essential automation
+│   └── Clear user consent language for AI-assisted features
+├── Privacy and security
+│   ├── Minimum necessary data handling
+│   ├── Encryption + strict access controls
+│   └── Controlled retention for PHI and logs
+└── Accountability and human oversight
+    ├── Named owner for each workflow domain
+    ├── Incident response runbook for AI/system failures
+    └── Human escalation path visible to operations teams
+
+Governance and Compliance
+├── Internal governance rules
+│   ├── Product + clinical + compliance signoff before launch
+│   ├── Change control for policy and model updates
+│   └── Periodic risk review board
+├── Standards and frameworks reference
+│   ├── Trustworthy AI principles (fairness, accountability, transparency)
+│   ├── Applicable healthcare privacy regulations
+│   └── Internal security baselines and SDLC controls
+└── Audit and monitoring plan
+    ├── Continuous policy compliance checks
+    ├── Quarterly fairness and performance audits
+    ├── Alerting on anomalous recommendation behavior
+    └── Versioned model and prompt registry for traceability
