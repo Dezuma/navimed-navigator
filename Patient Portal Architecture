@@ -1,0 +1,172 @@
+## Patient Portal Architecture (Tree Format)
+
+Shareable architecture outline for the AI-assisted patient journey, including post-visit survey and long-range follow-up scheduling notifications.
+
+## 1) System Landscape
+
+Patient Portal Platform
+├── Patient App (Web/Mobile)
+│   ├── Symptom intake
+│   ├── Appointment booking and rescheduling
+│   ├── Check-in experience
+│   ├── Reminder center
+│   ├── Survey completion
+│   └── Follow-up scheduling
+├── API Gateway / Backend-for-Frontend (BFF)
+│   ├── Auth and session handling
+│   ├── Request orchestration
+│   ├── Patient-facing APIs
+│   └── Response shaping for mobile/web clients
+├── AI Agent Layer
+│   ├── Intake Assistant Agent
+│   │   ├── Captures symptom/concern context
+│   │   └── Structures data for scheduling and triage routing
+│   ├── Scheduling Copilot
+│   │   ├── Recommends provider options
+│   │   └── Ranks appointment slots based on rules and patient preferences
+│   ├── Waiting Room Assistant Agent
+│   │   ├── Collects updates before provider arrives
+│   │   └── Captures patient questions and concerns
+│   ├── Provider Summary Generator
+│   │   ├── Produces concise pre-visit summary
+│   │   └── Highlights key context for focused appointments
+│   └── Reminder Personalization Agent
+│       ├── Adjusts reminder timing and tone
+│       └── Honors consent and channel preferences
+├── Scheduling System
+│   ├── Provider availability calendar
+│   ├── Appointment rules and constraints
+│   ├── Booking / rescheduling engine
+│   ├── Future schedule publication
+│   └── Follow-up eligibility windows (6-12 months)
+├── Notification and Engagement Service
+│   ├── Push, SMS, email delivery
+│   ├── Campaign and workflow templates
+│   ├── Survey trigger workflows
+│   └── Follow-up booking alerts
+├── Event Bus + Workflow Orchestrator
+│   ├── Lifecycle event publishing
+│   ├── Async process coordination
+│   ├── Retry and dead-letter handling
+│   └── Idempotent workflow execution
+├── External Integrations
+│   ├── Maps / Traffic API
+│   │   ├── Real-time travel estimates
+│   │   └── Departure-time recommendations
+│   └── Transportation Services
+│       ├── Ride options/deep links
+│       └── Late-arrival mitigation support
+├── EHR / Provider Dashboard
+│   ├── Encounter and status updates
+│   ├── AI summary display
+│   ├── Provider review workflow
+│   └── Visit completion trigger source
+└── Analytics and Reporting
+    ├── Satisfaction trends
+    ├── Follow-up conversion
+    ├── No-show and lateness metrics
+    └── Capacity and scheduling optimization insights
+
+## 2) End-to-End Patient Journey
+
+Patient Care Workflow
+├── Step 1: Patient opens portal and enters symptom/concern
+├── Step 2: AI suggests providers and appointment slots
+├── Step 3: Patient schedules or reschedules appointment
+├── Step 4: AI confirms booking and adds reminders/calendar hooks
+├── Step 5: Day-of reminder checks traffic and suggests departure time
+├── Step 6: Patient arrives and checks in
+├── Step 7: AI waiting room assistant collects updates/questions
+├── Step 8: AI creates summary for provider
+├── Step 9: Provider reviews summary and conducts focused visit
+└── Step 10: Post-visit engagement and continuity flow
+├── 10.1 Visit completion event received.
+
+## 3) Event-Driven Backbone
+
+Appointment Lifecycle Events
+├── AppointmentBooked
+├── AppointmentRescheduled
+├── ReminderScheduled
+├── DayOfTrafficReminderSent
+├── PatientCheckedIn
+├── WaitingRoomDataCaptured
+├── ProviderSummaryGenerated
+├── VisitCompleted
+├── PostVisitReminderSent
+├── SurveyRequested
+├── SurveyCompleted
+├── FollowUpWindowStarted
+├── ProviderScheduleOpened
+├── FollowUpPromptSent
+└── FollowUpBooked
+
+Each Event Payload (Minimum)
+├── event_id
+├── event_type
+├── aggregate_id (patient/appointment/encounter reference)
+├── occurred_at
+├── source_system
+├── correlation_id
+├── version
+└── idempotency_key
+
+## 4) AI Governance and Safety
+
+AI Guardrails
+├── Constrained recommendations (rule-first enforcement)
+├── Structured output schemas
+├── Clinical safety boundaries (advisory, not autonomous diagnosis)
+├── Provider-in-the-loop review for visit summaries
+├── Prompt/output auditability
+└── Escalation paths for uncertain/high-risk cases
+
+## 5) Security and Compliance
+
+Healthcare Security Controls
+├── Encryption in transit and at rest
+├── Role-based and attribute-based access controls
+├── Least-privilege data access for AI and services
+├── Consent management (notifications, channels, survey)
+├── Full audit logging
+└── Data retention and deletion policies
+
+## 6) Measurement Framework
+
+Operational KPIs
+├── Booking success rate
+├── Notification delivery and engagement
+├── Workflow failure and retry rates
+└── AI fallback/error rates
+
+Experience and Outcome KPIs
+├── Survey completion rate
+├── Patient satisfaction (CSAT/NPS)
+├── No-show reduction
+├── Follow-up prompt-to-book conversion
+└── Continuity-of-care improvement over 6-12 months
+
+## 7) Build Phases
+
+Roadmap
+
+├── Phase 1: Core scheduling + reminders
+│   ├── Patient booking and rescheduling
+│   ├── Scheduling integration
+│   └── Notification baseline
+
+├── Phase 2: AI-assisted visit prep
+│   ├── Intake assistant
+│   ├── Waiting room assistant
+│   └── Provider summary generation
+
+├── Phase 3: Post-visit engagement (new feature)
+│   ├── Survey automation
+│   ├── Follow-up window logic (6-12 months)
+│   ├── Schedule-open monitoring
+│   └── Direct follow-up self-scheduling
+
+└── Phase 4: Optimization and scaling
+    ├── Personalization tuning
+    ├── Capacity-aware scheduling improvements
+    └── Closed-loop quality and efficiency insights
