@@ -1,5 +1,5 @@
 # navi-med
-An AI-driven patient platform utilizing generative AI and data algorithms to automate medical logistics, transportation scheduling, and personalized care insights. [🌐 View Live Demo →](https://dezuma.github.io//navi-med/)
+An AI-driven patient platform utilizing generative AI and data algorithms to automate medical logistics, transportation scheduling, and personalized care insights.
 
 ### Overview
 NaviMed is a patient-centric "App" platform that replaces static health dashboards with an active, predictive interface. Built on empathic analysis the platform utilizes generative AI to translate complex clinical data into actionable patient insights.
