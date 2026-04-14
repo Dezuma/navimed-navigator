@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Logs
 logs
 *.log
@@ -137,3 +138,9 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+=======
+frontend/node_modules/
+frontend/dist/
+.DS_Store
+*.log
+>>>>>>> 5de3071 (Add patient showcase frontend, update MVP doc without triage agent)

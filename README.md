@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # navi-med
 An AI-driven patient platform utilizing generative AI and data algorithms to automate medical logistics, transportation scheduling, and personalized care insights.
 
@@ -25,3 +26,36 @@ Debaris Ezumah
 Meenakshi Sundaram Venkatanarayanan
 
 Vijayshankar Mishra
+=======
+# NaviMed
+
+AI-assisted patient navigation showcase aligned with the [NaviMed Figma flows](https://www.figma.com/design/JgNiWH1DOrn4VRq43WG6Xn/NaviMed?node-id=0-1).
+
+## Patient demo (frontend)
+
+Mobile-first React demo: onboarding, auth, HIPAA privacy, Navi intro, home, scheduling, appointments, visit detail, booking success, and Navi listening/thinking overlays. **Navi** is scoped to scheduling, visit prep, check-in, and summaries—not clinical triage.
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Production build:
+
+```bash
+cd frontend
+npm run build
+npm run preview   # optional local preview of dist/
+```
+
+Static assets are emitted to `frontend/dist/` with `base: './'` for flexible hosting (including GitHub Pages project sites).
+
+## Documentation
+
+- `docs/navimed-mvp.docx` — MVP document with **triage agent** language removed or reframed as **scheduling** / **visit intake** (no separate triage agent).
+
+## Repository
+
+Upstream home for this work: [github.com/Dezuma/navi-med](https://github.com/Dezuma/navi-med).
+>>>>>>> 5de3071 (Add patient showcase frontend, update MVP doc without triage agent)
