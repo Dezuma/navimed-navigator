@@ -10,23 +10,10 @@ Design reference: [NaviMed Figma](https://www.figma.com/design/JgNiWH1DOrn4VRq43
 
 Mobile-first React demo: onboarding, auth, HIPAA privacy, Navi intro, home, scheduling, appointments, visit detail, booking success, and Navi listening/thinking overlays. **Navi** focuses on scheduling, visit prep, check-in, and summaries—not clinical triage.
 
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-Open http://localhost:5173/ (dev uses site root; production build uses `/navi-med/` for GitHub Pages).
-
-```bash
-cd frontend
-npm run build
-npm run preview
-```
 
 ## Documentation
 
-- `docs/navimed-mvp.docx` — MVP document with triage-agent language reframed around scheduling / visit intake.
+- `docs/navimed-mvp.docx` — MVP document.
 
 ## Repository
 
