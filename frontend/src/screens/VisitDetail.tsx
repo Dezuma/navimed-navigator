@@ -42,7 +42,10 @@ export function VisitDetail() {
           </p>
         </div>
 
-        <AskNaviBar placeholder={upcoming ? "Ask Navi about this visit…" : "Ask Navi to explain my summary…"} />
+        <AskNaviBar
+          placeholder={upcoming ? "Ask Navi about this visit…" : "Ask Navi to explain my summary…"}
+          context={upcoming ? "visit-upcoming" : "visit-past"}
+        />
       </div>
     </ScreenChrome>
   );

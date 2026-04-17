@@ -58,7 +58,7 @@ export function Home() {
           </div>
         </div>
 
-        <AskNaviBar />
+        <AskNaviBar context="home-dashboard" />
       </div>
     </ScreenChrome>
   );

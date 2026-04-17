@@ -4,18 +4,22 @@ import { NaviMascot } from "./NaviMascot";
 
 type Props = {
   placeholder?: string;
+  context?: string;
 };
 
 /** Bottom chat bar aligned with Figma “Ask Navi” — scheduling, prep, check-in, summaries (no clinical triage). */
-export function AskNaviBar({ placeholder = "Ask Navi…" }: Props) {
+export function AskNaviBar({ placeholder = "Ask Navi…", context }: Props) {
   const [q, setQ] = useState("");
   const navigate = useNavigate();
 
   const send = () => {
-    const t = q.trim().toLowerCase();
+    const prompt = q.trim();
+    const t = prompt.toLowerCase();
+    if (!prompt) return;
     if (t.includes("schedule") || t.includes("book")) navigate("/schedule");
     else if (t.includes("appointment")) navigate("/appointments");
-    else navigate("/navi", { state: { mode: "thinking", prompt: q.trim() } });
+    else navigate("/navi", { state: { mode: "thinking", prompt, context } });
+    setQ("");
   };
 
   return (

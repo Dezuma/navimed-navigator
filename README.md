@@ -10,6 +10,60 @@ Design reference: [NaviMed Figma](https://www.figma.com/design/JgNiWH1DOrn4VRq43
 
 Mobile-first React demo: onboarding, auth, HIPAA privacy, Navi intro, home, scheduling, appointments, visit detail, booking success, and Navi listening/thinking overlays. **Navi** focuses on scheduling, visit prep, check-in, and summaries—not clinical triage.
 
+### Run locally
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+### AI response callback integration
+
+The UI now supports generated responses from an external AI endpoint, plus an optional callback webhook.
+
+- `VITE_NAVI_AI_ENDPOINT` - `POST` endpoint that accepts `{ prompt, context }` and can return:
+  - `text` (string),
+  - `intent` (`schedule | appointments | prep | summary | general`),
+  - `followUps` (string array).
+- `VITE_NAVI_CALLBACK_URL` - optional `POST` callback destination for generated responses.
+
+Example:
+
+```bash
+cd frontend
+cat <<'EOF' > .env.local
+VITE_NAVI_AI_ENDPOINT=https://your-api.example.com/navi/respond
+VITE_NAVI_CALLBACK_URL=https://your-api.example.com/navi/callback
+EOF
+```
+
+If no AI endpoint is configured (or the request fails), Navi uses an in-app fallback generator.
+
+### Local mock AI + callback server (ready demo)
+
+You can run a local mock endpoint and callback collector included in this repo:
+
+```bash
+# Terminal 1
+cd tools/mock-ai
+npm start
+```
+
+```bash
+# Terminal 2
+cd frontend
+cp .env.example .env.local
+npm run dev
+```
+
+Then:
+
+- Ask Navi anything in the UI to generate responses from `http://127.0.0.1:8787/navi/respond`
+- Callback events are stored in memory and viewable at:
+  - `http://127.0.0.1:8787/navi/callbacks`
+  - health check: `http://127.0.0.1:8787/health`
+
 
 ## Documentation
 
