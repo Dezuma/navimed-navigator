@@ -3,6 +3,7 @@
 An AI-driven patient platform using generative AI and data algorithms for medical logistics, transportation scheduling, and personalized care insights.
 
 **Live patient UI demo (GitHub Pages):** https://dezuma.github.io/navi-med/
+**Shareable deep-link format:** `https://dezuma.github.io/navi-med/#/splash`
 
 Design reference: [NaviMed Figma](https://www.figma.com/design/JgNiWH1DOrn4VRq43WG6Xn/NaviMed?node-id=0-1).
 
@@ -73,9 +74,12 @@ See `tools/mock-ai/README.md` for tunables (`HOST`, `PORT`, rate limits, API key
 
 Static hosting cannot proxy private APIs: the public demo uses **fallback responses** unless you configure a **publicly reachable HTTPS** endpoint (rare for demos). Local mock remains the recommended full pipeline.
 
+Routing note: the app uses hash routing for static-host reliability, so route shares should use `#/...` (example: `#/schedule`).
+
 ## Documentation
 
 - `docs/navimed-mvp.docx` — MVP document.
+- External rewritten draft available at `/home/dbz/Downloads/navimed-mvp0.docx` (aligned to current app flows).
 
 ## Repository
 
