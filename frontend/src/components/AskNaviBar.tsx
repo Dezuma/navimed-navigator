@@ -47,6 +47,7 @@ export function AskNaviBar({ placeholder = "Ask Navi…", context }: Props) {
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder={placeholder}
+          maxLength={2000}
           onKeyDown={(e) => e.key === "Enter" && send()}
         />
         <button

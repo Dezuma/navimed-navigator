@@ -3,6 +3,20 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { NaviMascot } from "../components/NaviMascot";
 import { generateNaviResponse, type NaviGeneratedResponse } from "../lib/navi-ai";
 
+function describeSource(r: NaviGeneratedResponse): string {
+  if (r.source === "remote") {
+    return r.httpStatus != null ? `AI endpoint (HTTP ${r.httpStatus})` : "AI endpoint";
+  }
+  const fr = r.fallbackReason;
+  if (fr === "missing-endpoint") return "Smart fallback (no API URL in this build)";
+  if (fr === "timeout") return "Smart fallback (request timed out)";
+  if (fr === "aborted") return "Smart fallback (cancelled)";
+  if (fr === "http-error") return "Smart fallback (API error)";
+  if (fr === "invalid-response") return "Smart fallback (unexpected API shape)";
+  if (fr === "network") return "Smart fallback (network issue)";
+  return "Smart fallback";
+}
+
 type LocState = { mode?: "listening" | "thinking"; prompt?: string; context?: string };
 
 export function NaviOverlay() {
@@ -81,6 +95,11 @@ export function NaviOverlay() {
             ? "Speak or type when you’re ready."
             : "I can help with scheduling, check-in, and visit summaries—not medical triage."}
         </p>
+        {mode === "thinking" ? (
+          <p style={{ fontSize: "0.72rem", color: "var(--nm-muted)", marginTop: 8, lineHeight: 1.4 }}>
+            Demo assistant — not medical advice. Do not enter sensitive health details.
+          </p>
+        ) : null}
         {state.prompt ? (
           <p style={{ fontSize: "0.875rem", marginTop: 12, fontStyle: "italic", color: "var(--nm-muted)" }}>
             “{state.prompt}”
@@ -102,7 +121,7 @@ export function NaviOverlay() {
           >
             <p style={{ margin: 0, fontSize: "0.92rem", lineHeight: 1.5 }}>{response.text}</p>
             <p style={{ margin: "8px 0 0", fontSize: "0.74rem", color: "var(--nm-muted)" }}>
-              Source: {response.source === "remote" ? "AI endpoint" : "Smart fallback"}
+              Source: {describeSource(response)}
             </p>
             <div className="nm-chip-row" style={{ marginTop: 8 }}>
               {response.followUps.map((choice) => (

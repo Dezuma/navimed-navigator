@@ -6,6 +6,16 @@ An AI-driven patient platform using generative AI and data algorithms for medica
 
 Design reference: [NaviMed Figma](https://www.figma.com/design/JgNiWH1DOrn4VRq43WG6Xn/NaviMed?node-id=0-1).
 
+## Repository layout
+
+```
+navi-med/
+├── frontend/           # Vite + React SPA (deployable static site)
+├── tools/mock-ai/      # Local demo API + JSONL callback storage (dev only)
+├── docs/               # Product docs (e.g. MVP docx)
+└── .github/workflows/  # GitHub Pages deploy
+```
+
 ## Patient showcase (frontend)
 
 Mobile-first React demo: onboarding, auth, HIPAA privacy, Navi intro, home, scheduling, appointments, visit detail, booking success, and Navi listening/thinking overlays. **Navi** focuses on scheduling, visit prep, check-in, and summaries—not clinical triage.
@@ -18,31 +28,26 @@ npm install
 npm run dev
 ```
 
-### AI response callback integration
+### AI responses + callbacks
 
-The UI now supports generated responses from an external AI endpoint, plus an optional callback webhook.
+The UI calls an optional HTTP endpoint for generated replies and can POST anonymized payloads to an optional callback URL. If the endpoint is missing or unreachable, **deterministic smart fallback** text is used so demos never break.
 
-- `VITE_NAVI_AI_ENDPOINT` - `POST` endpoint that accepts `{ prompt, context }` and can return:
-  - `text` (string),
-  - `intent` (`schedule | appointments | prep | summary | general`),
-  - `followUps` (string array).
-- `VITE_NAVI_CALLBACK_URL` - optional `POST` callback destination for generated responses.
+Environment variables (see `frontend/.env.example`):
 
-Example:
+| Variable | Purpose |
+|----------|---------|
+| `VITE_NAVI_AI_ENDPOINT` | `POST` JSON `{ prompt, context? }` → `{ text, intent?, followUps? }` |
+| `VITE_NAVI_CALLBACK_URL` | Optional `POST` for telemetry/analytics (payload size–limited client-side) |
+| `VITE_NAVI_API_KEY` | Optional Bearer token for the mock server **only** — still exposed in the browser bundle |
 
-```bash
-cd frontend
-cat <<'EOF' > .env.local
-VITE_NAVI_AI_ENDPOINT=https://your-api.example.com/navi/respond
-VITE_NAVI_CALLBACK_URL=https://your-api.example.com/navi/callback
-EOF
-```
+**Security notes**
 
-If no AI endpoint is configured (or the request fails), Navi uses an in-app fallback generator.
+- Anything prefixed with `VITE_` is embedded in static assets — **never treat it as a secret**.
+- Do not paste PHI into the demo assistant; use synthetic demo content only.
+- For production, put API keys on a **backend-for-frontend** or managed gateway, not in the SPA.
+- The mock server defaults to **loopback** (`127.0.0.1`) and optional `NAVI_API_KEY` if you expose it beyond your machine.
 
-### Local mock AI + callback server (ready demo)
-
-You can run a local mock endpoint and callback collector included in this repo:
+### Local mock AI + callback server
 
 ```bash
 # Terminal 1
@@ -57,13 +62,16 @@ cp .env.example .env.local
 npm run dev
 ```
 
-Then:
+- Responses: `http://127.0.0.1:8787/navi/respond`
+- Callback log (memory + append-only file): `GET http://127.0.0.1:8787/navi/callbacks`
+- Persisted lines: `tools/mock-ai/data/callbacks.jsonl` (gitignored)
+- Health: `http://127.0.0.1:8787/health`
 
-- Ask Navi anything in the UI to generate responses from `http://127.0.0.1:8787/navi/respond`
-- Callback events are stored in memory and viewable at:
-  - `http://127.0.0.1:8787/navi/callbacks`
-  - health check: `http://127.0.0.1:8787/health`
+See `tools/mock-ai/README.md` for tunables (`HOST`, `PORT`, rate limits, API key).
 
+### GitHub Pages behavior
+
+Static hosting cannot proxy private APIs: the public demo uses **fallback responses** unless you configure a **publicly reachable HTTPS** endpoint (rare for demos). Local mock remains the recommended full pipeline.
 
 ## Documentation
 
