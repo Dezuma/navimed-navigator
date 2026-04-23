@@ -1,12 +1,15 @@
 import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { CoreFlowPills } from "../components/CoreFlowPills";
+import { NaviMascot } from "../components/NaviMascot";
 import { ScreenChrome } from "../components/ScreenChrome";
 
 const SLOTS = ["9:00 AM", "9:30 AM", "10:00 AM", "10:30 AM", "11:00 AM", "2:00 PM", "3:30 PM"];
 
 export function Schedule() {
   const navigate = useNavigate();
+  const { mode } = useParams();
+  const reschedule = mode === "reschedule";
   const [day, setDay] = useState(2);
   const [slot, setSlot] = useState<string | null>("10:30 AM");
 
@@ -25,12 +28,17 @@ export function Schedule() {
   }, []);
 
   return (
-    <ScreenChrome title="Schedule visit">
+    <ScreenChrome title={reschedule ? "Reschedule Visit" : "Schedule Visit"}>
       <div className="nm-scroll" style={{ flex: 1, display: "flex", flexDirection: "column" }}>
         <CoreFlowPills active="scheduling" />
-        <p className="nm-muted" style={{ marginTop: 8 }}>
-          Select a time with <strong>Dr. Brooks</strong>
-        </p>
+        <div style={{ display: "flex", justifyContent: "center", marginTop: 8, marginBottom: 10 }}>
+          <NaviMascot size={40} />
+        </div>
+        <h3 className="nm-h2" style={{ textAlign: "center", marginBottom: 4 }}>
+          {reschedule
+            ? "Got it! Let's find a better time for you."
+            : "Here's the next available appointments with Dr. Brooks."}
+        </h3>
 
         <div className="nm-date-strip">
           {days.map((d, i) => (
@@ -66,9 +74,16 @@ export function Schedule() {
             </button>
           ))}
         </div>
-        <p className="nm-muted" style={{ fontSize: "0.8rem" }}>
-          Grayed slots are unavailable (demo).
-        </p>
+        <div className="nm-chip-row" style={{ marginTop: 6 }}>
+          {(reschedule
+            ? ["Need to leave by 3pm", "Can’t do mornings", "Prefer afternoons"]
+            : ["Need to leave by 3pm", "Prefer in person", "Change provider"])
+            .map((x) => (
+              <span key={x} className="nm-chip">
+                {x}
+              </span>
+            ))}
+        </div>
 
         <button
           type="button"
@@ -77,7 +92,7 @@ export function Schedule() {
           disabled={!slot}
           onClick={() => navigate("/booked")}
         >
-          Schedule visit
+          {reschedule ? "Reschedule Visit" : "Schedule Visit"}
         </button>
       </div>
     </ScreenChrome>

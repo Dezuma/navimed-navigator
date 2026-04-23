@@ -26,37 +26,34 @@ export function AskNaviBar({ placeholder = "Ask Navi…", context }: Props) {
     <div
       style={{
         marginTop: "auto",
-        padding: "12px 0 8px",
-        borderTop: "1px solid var(--nm-border)",
-        background: "linear-gradient(180deg, transparent, var(--nm-bg) 18%)",
+        padding: "14px 0 8px",
+        borderTop: "1px solid #dbeafe",
+        background: "linear-gradient(180deg, transparent, #f8fbff 18%)",
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-        <NaviMascot size={40} />
-        <div>
-          <div style={{ fontWeight: 600, fontSize: "0.95rem" }}>Ask Navi</div>
-          <p className="nm-muted" style={{ fontSize: "0.8rem", margin: 0 }}>
-            Scheduling, visit prep, check-in, and summaries
-          </p>
-        </div>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: 10 }}>
+        <NaviMascot size={34} />
+        <p className="nm-muted" style={{ fontSize: "0.8rem", margin: "6px 0 0" }}>
+          Need help with your visit?
+        </p>
       </div>
       <div style={{ display: "flex", gap: 8 }}>
         <input
           className="nm-field"
-          style={{ marginBottom: 0, flex: 1 }}
+          style={{ marginBottom: 0, flex: 1, borderRadius: 999, paddingTop: 10, paddingBottom: 10 }}
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder={placeholder}
+          placeholder={placeholder || "Ask Navi"}
           maxLength={2000}
           onKeyDown={(e) => e.key === "Enter" && send()}
         />
         <button
           type="button"
           className="nm-btn nm-btn-primary"
-          style={{ width: "auto", padding: "14px 18px" }}
+          style={{ width: "auto", padding: "10px 16px", borderRadius: 999 }}
           onClick={send}
         >
-          Go
+          Ask
         </button>
       </div>
       <div className="nm-chip-row">

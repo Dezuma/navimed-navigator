@@ -36,9 +36,22 @@ export function SideMenu({ open, onClose }: Props) {
         </div>
         <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
           {[
-            ["/home", "Home"],
+            ["/home/has-appt", "Home (has appt)"],
+            ["/home/no-appt", "Home (no appt)"],
+            ["/home/visit-complete", "Home (visit complete)"],
             ["/appointments", "Appointments"],
             ["/schedule", "Schedule"],
+            ["/schedule/reschedule", "Reschedule"],
+            ["/visit/checkedin", "Visit Detail (checked in)"],
+            ["/overlay/keyboard", "Overlay: keyboard"],
+            ["/overlay/mic", "Overlay: mic"],
+            ["/overlay/thinking", "Overlay: thinking"],
+            ["/overlay/preparing", "Overlay: preparing"],
+            ["/overlay/booked", "Overlay: booked"],
+            ["/overlay/sent", "Overlay: summary sent"],
+            ["/provider/mobile", "Provider mobile"],
+            ["/provider/tablet", "Provider tablet"],
+            ["/admin", "Admin dashboard"],
             ["/privacy", "Privacy & HIPAA"],
             ["/splash", "Restart demo"],
           ].map(([to, label]) => (

@@ -1,11 +1,12 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { PhoneShell } from "../components/PhoneShell";
+import phoneHome from "../assets/phone-home.png";
 
 export function Splash() {
   const navigate = useNavigate();
   useEffect(() => {
-    const t = setTimeout(() => navigate("/onboarding/0"), 1600);
+    const t = setTimeout(() => navigate("/splash-logo"), 1200);
     return () => clearTimeout(t);
   }, [navigate]);
 
@@ -14,23 +15,42 @@ export function Splash() {
       <div
         style={{
           flex: 1,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: 32,
-          background: "#fff",
+          position: "relative",
+          overflow: "hidden",
+          background: "#000",
         }}
       >
-        <div className="nm-logo" style={{ marginBottom: 20 }}>
-          +
+        <img
+          src={phoneHome}
+          alt="Phone home screen with NaviMed app"
+          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+        />
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            background: "linear-gradient(180deg, rgba(2,6,23,0.08) 0%, rgba(2,6,23,0.2) 100%)",
+          }}
+        />
+        <div
+          style={{
+            position: "absolute",
+            left: 18,
+            right: 18,
+            bottom: 30,
+            borderRadius: 14,
+            background: "rgba(255,255,255,0.22)",
+            border: "1px solid rgba(255,255,255,0.35)",
+            padding: "10px 12px",
+            backdropFilter: "blur(6px)",
+            color: "#fff",
+            fontSize: "0.88rem",
+            textAlign: "center",
+            fontWeight: 600,
+          }}
+        >
+          Opening NaviMed...
         </div>
-        <h1 style={{ margin: 0, fontSize: "1.75rem", fontWeight: 700, letterSpacing: "-0.03em" }}>
-          NaviMed
-        </h1>
-        <p className="nm-muted" style={{ marginTop: 8 }}>
-          Navigate your care with confidence
-        </p>
       </div>
     </PhoneShell>
   );

@@ -3,19 +3,19 @@ import { PhoneShell } from "../components/PhoneShell";
 
 const SLIDES = [
   {
-    title: "Fast, frictionless scheduling",
-    body: "Book and reschedule without phone tag—right from your phone.",
-    art: "\u{1F4F1}",
+    title: "Fast, Frictionless Scheduling",
+    body: "Book or reschedule care in under a minute.",
+    art: "schedule",
   },
   {
-    title: "Smarter visit prep",
-    body: "Share concerns ahead of time so your care team is ready for you.",
-    art: "\u{1F9D1}\u200D\u{2695}\uFE0F",
+    title: "Smarter Visit Prep",
+    body: "Share symptoms ahead of time. We summarize them for your doctor.",
+    art: "prep",
   },
   {
     title: "Stay on track",
-    body: "Reminders, visit summaries, and clear next steps after every appointment.",
-    art: "\u{1F514}",
+    body: "Get reminders, clear summaries, and simple next steps.",
+    art: "track",
   },
 ];
 
@@ -26,10 +26,170 @@ export function Onboarding() {
   const slide = SLIDES[i];
   const last = i === SLIDES.length - 1;
 
+  const renderArt = () => {
+    if (slide.art === "schedule") {
+      return (
+        <div style={{ position: "relative", width: 220, height: 140 }}>
+          <div
+            style={{
+              position: "absolute",
+              left: 26,
+              top: 22,
+              width: 60,
+              height: 100,
+              borderRadius: 18,
+              background: "#1e293b",
+            }}
+          />
+          <div
+            style={{
+              position: "absolute",
+              right: 20,
+              top: 18,
+              width: 120,
+              height: 84,
+              borderRadius: 14,
+              background: "#fff",
+              border: "1px solid #dbeafe",
+              boxShadow: "0 6px 20px rgba(30,78,216,0.12)",
+            }}
+          />
+          <div
+            style={{
+              position: "absolute",
+              right: 28,
+              top: 30,
+              width: 104,
+              height: 8,
+              borderRadius: 999,
+              background: "#dbeafe",
+            }}
+          />
+          <div
+            style={{
+              position: "absolute",
+              right: 28,
+              top: 46,
+              width: 70,
+              height: 8,
+              borderRadius: 999,
+              background: "#bfdbfe",
+            }}
+          />
+          <div
+            style={{
+              position: "absolute",
+              right: 28,
+              top: 64,
+              width: 52,
+              height: 20,
+              borderRadius: 999,
+              background: "#2563eb",
+            }}
+          />
+        </div>
+      );
+    }
+    if (slide.art === "prep") {
+      return (
+        <div style={{ position: "relative", width: 220, height: 140 }}>
+          <div
+            style={{
+              position: "absolute",
+              left: 30,
+              top: 24,
+              width: 72,
+              height: 88,
+              borderRadius: 999,
+              background: "linear-gradient(180deg,#22d3ee,#3b82f6)",
+              opacity: 0.2,
+            }}
+          />
+          <div
+            style={{
+              position: "absolute",
+              right: 28,
+              top: 22,
+              width: 132,
+              height: 92,
+              borderRadius: 16,
+              background: "#fff",
+              border: "1px solid #dbeafe",
+            }}
+          />
+          <div
+            style={{
+              position: "absolute",
+              right: 38,
+              top: 34,
+              width: 108,
+              height: 8,
+              borderRadius: 999,
+              background: "#dbeafe",
+            }}
+          />
+          <div
+            style={{
+              position: "absolute",
+              right: 38,
+              top: 50,
+              width: 82,
+              height: 8,
+              borderRadius: 999,
+              background: "#bfdbfe",
+            }}
+          />
+          <div
+            style={{
+              position: "absolute",
+              right: 38,
+              top: 67,
+              width: 96,
+              height: 8,
+              borderRadius: 999,
+              background: "#bfdbfe",
+            }}
+          />
+        </div>
+      );
+    }
+    return (
+      <div style={{ position: "relative", width: 220, height: 140 }}>
+        {[0, 1, 2].map((n) => (
+          <div
+            key={n}
+            style={{
+              position: "absolute",
+              right: 24,
+              top: 24 + n * 30,
+              width: 18,
+              height: 18,
+              borderRadius: "50%",
+              border: "2px solid #22d3ee",
+              background: "#fff",
+            }}
+          />
+        ))}
+        <div
+          style={{
+            position: "absolute",
+            left: 24,
+            top: 34,
+            width: 88,
+            height: 88,
+            borderRadius: "50%",
+            background: "linear-gradient(140deg,#60a5fa,#2563eb)",
+            opacity: 0.2,
+          }}
+        />
+      </div>
+    );
+  };
+
   return (
     <PhoneShell>
-      <div className="nm-scroll" style={{ display: "flex", flexDirection: "column", flex: 1 }}>
-        <div style={{ display: "flex", gap: 6, marginBottom: 20 }}>
+      <div className="nm-scroll" style={{ display: "flex", flexDirection: "column", flex: 1, paddingTop: 6 }}>
+        <div style={{ display: "flex", gap: 6, marginBottom: 16 }}>
           {SLIDES.map((_, j) => (
             <div
               key={j}
@@ -37,7 +197,7 @@ export function Onboarding() {
                 flex: 1,
                 height: 4,
                 borderRadius: 4,
-                background: j <= i ? "var(--nm-blue)" : "var(--nm-border)",
+                background: j === i ? "var(--nm-blue)" : "#e2e8f0",
               }}
             />
           ))}
@@ -49,39 +209,41 @@ export function Onboarding() {
             flexDirection: "column",
             alignItems: "center",
             textAlign: "center",
-            paddingTop: 16,
+            paddingTop: 4,
           }}
         >
           <div
             style={{
               width: "100%",
-              maxWidth: 280,
-              height: 200,
-              borderRadius: 24,
-              background: "linear-gradient(180deg, var(--nm-blue-soft), #fff)",
+              maxWidth: 286,
+              height: 188,
+              borderRadius: 22,
+              background: "linear-gradient(180deg, #eff6ff, #ffffff)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              fontSize: 72,
-              marginBottom: 28,
+              marginBottom: 24,
             }}
           >
-            {slide.art}
+            {renderArt()}
           </div>
-          <h1 className="nm-h1">{slide.title}</h1>
-          <p className="nm-muted" style={{ maxWidth: 300 }}>
+          <h1 className="nm-h1" style={{ fontSize: "2rem", marginBottom: 10 }}>
+            {slide.title}
+          </h1>
+          <p className="nm-muted" style={{ maxWidth: 298, fontSize: "1rem" }}>
             {slide.body}
           </p>
         </div>
         <button
           type="button"
           className="nm-btn nm-btn-primary"
+          style={{ marginTop: "auto" }}
           onClick={() => (last ? navigate("/auth") : navigate(`/onboarding/${i + 1}`))}
         >
-          {last ? "Get started" : "Continue"}
+          {last ? "Get Started" : "Continue"}
         </button>
         {!last ? (
-          <button type="button" className="nm-btn nm-btn-ghost" onClick={() => navigate("/auth")}>
+          <button type="button" className="nm-btn nm-btn-ghost" style={{ fontWeight: 700 }} onClick={() => navigate("/auth")}>
             Skip
           </button>
         ) : null}

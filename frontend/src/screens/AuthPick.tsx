@@ -4,6 +4,7 @@ import { PhoneShell } from "../components/PhoneShell";
 export function AuthPick() {
   return (
     <PhoneShell>
+      <div style={{ height: 12, background: "linear-gradient(90deg,#06b6d4,#0284c7)" }} />
       <div className="nm-scroll" style={{ flex: 1, display: "flex", flexDirection: "column" }}>
         <div style={{ textAlign: "center", margin: "24px 0 32px" }}>
           <div className="nm-logo" style={{ margin: "0 auto 16px" }}>

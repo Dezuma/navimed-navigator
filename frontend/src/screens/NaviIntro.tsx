@@ -6,6 +6,7 @@ export function NaviIntro() {
   const navigate = useNavigate();
   return (
     <PhoneShell>
+      <div style={{ height: 12, background: "linear-gradient(90deg,#06b6d4,#0284c7)" }} />
       <div
         className="nm-scroll"
         style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}
@@ -13,9 +14,9 @@ export function NaviIntro() {
         <div style={{ margin: "32px 0 20px" }}>
           <NaviMascot size={88} />
         </div>
-        <h1 className="nm-h1">Hi, I’m Navi</h1>
+        <h1 className="nm-h1">Hi, I'm Navi</h1>
         <p className="nm-muted" style={{ maxWidth: 320 }}>
-          I’ll help you navigate your care. When you see me, you can type or tap the mic to talk.
+          I'll help you navigate your care. When you see me, you can type or tap the mic to talk.
         </p>
         <ul
           style={{
@@ -26,9 +27,7 @@ export function NaviIntro() {
             fontSize: "0.95rem",
           }}
         >
-          <li style={{ marginBottom: 8 }}>Scheduling &amp; rescheduling</li>
-          <li style={{ marginBottom: 8 }}>Pre-visit prep &amp; check-in</li>
-          <li>Visit summaries &amp; next steps</li>
+          <li style={{ marginBottom: 8 }}>I can help with scheduling, re-visit prep, check-ins, and test results.</li>
         </ul>
         <button
           type="button"
