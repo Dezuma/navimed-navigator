@@ -64,11 +64,46 @@ npm run dev
 ```
 
 - Responses: `http://127.0.0.1:8787/navi/respond`
+- Data-backed ranking endpoint: `POST http://127.0.0.1:8787/navi/recommend`
 - Callback log (memory + append-only file): `GET http://127.0.0.1:8787/navi/callbacks`
 - Persisted lines: `tools/mock-ai/data/callbacks.jsonl` (gitignored)
 - Health: `http://127.0.0.1:8787/health`
+- Prompt templates endpoint: `GET http://127.0.0.1:8787/navi/prompts`
 
 See `tools/mock-ai/README.md` for tunables (`HOST`, `PORT`, rate limits, API key).
+
+### Applied scheduling datasets
+
+The demo backend is now grounded on:
+
+- `tools/mock-ai/data_sources/appointments.csv`
+- `tools/mock-ai/data_sources/providers.csv`
+- `tools/mock-ai/data_sources/clinics.csv`
+- `tools/mock-ai/data_sources/schedule_slots.csv`
+- `tools/mock-ai/data_sources/scheduling_preferences.csv`
+- `tools/mock-ai/data_sources/reminder_events.csv`
+- `tools/mock-ai/data_sources/transport_context.csv`
+
+Plus the supplied generator + notebook for reproducibility:
+
+- `tools/mock-ai/data_sources/generate_navimed_scheduling_data.py`
+- `tools/mock-ai/data_sources/navimed_scheduling_agent_notebook.ipynb`
+
+### Watsonx backend use (`apikey.json`)
+
+The backend can optionally route through watsonx if configured:
+
+```bash
+cd tools/mock-ai
+export WATSONX_APIKEY_FILE=/home/dbz/Downloads/apikey.json
+export WATSONX_PROJECT_ID=your_project_id
+export WATSONX_REGION=us-south
+export WATSONX_MODEL=ibm/granite-3-8b-instruct
+export WATSONX_ROUTE_ENABLED=true
+npm start
+```
+
+If watsonx is unavailable, the data-backed deterministic path continues to work.
 
 ### GitHub Pages behavior
 
@@ -80,6 +115,7 @@ Routing note: the app uses hash routing for static-host reliability, so route sh
 
 - `docs/navimed-mvp.docx` — MVP document.
 - External rewritten draft available at `/home/dbz/Downloads/navimed-mvp0.docx` (aligned to current app flows).
+- `docs/watsonx-constructable-prompts.md` — reusable prompt templates for routing + response generation.
 
 ## Repository
 

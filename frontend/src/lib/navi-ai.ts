@@ -12,6 +12,8 @@ export type NaviGeneratedResponse = {
   text: string;
   intent: NaviIntent;
   followUps: string[];
+  structured?: Record<string, unknown>;
+  evidence?: Record<string, unknown>;
   source: "remote" | "local-fallback";
   fallbackReason?: FallbackReason;
   httpStatus?: number;
@@ -112,6 +114,14 @@ function sanitizeRemotePayload(
     text,
     intent,
     followUps: followUps.length ? followUps : localFallback(prompt).followUps,
+    structured:
+      json.structured && typeof json.structured === "object"
+        ? (json.structured as Record<string, unknown>)
+        : undefined,
+    evidence:
+      json.evidence && typeof json.evidence === "object"
+        ? (json.evidence as Record<string, unknown>)
+        : undefined,
   };
 }
 
@@ -121,6 +131,7 @@ function redactForCallback(r: NaviGeneratedResponse): NaviGeneratedResponse {
     text: clampStr(r.text, 4000),
     intent: r.intent,
     followUps: r.followUps.slice(0, MAX_FOLLOW),
+    structured: r.structured,
     source: r.source,
     fallbackReason: r.fallbackReason,
     httpStatus: r.httpStatus,

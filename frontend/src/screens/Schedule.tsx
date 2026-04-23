@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { CoreFlowPills } from "../components/CoreFlowPills";
 import { ScreenChrome } from "../components/ScreenChrome";
 
 const SLOTS = ["9:00 AM", "9:30 AM", "10:00 AM", "10:30 AM", "11:00 AM", "2:00 PM", "3:30 PM"];
@@ -26,6 +27,7 @@ export function Schedule() {
   return (
     <ScreenChrome title="Schedule visit">
       <div className="nm-scroll" style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+        <CoreFlowPills active="scheduling" />
         <p className="nm-muted" style={{ marginTop: 8 }}>
           Select a time with <strong>Dr. Brooks</strong>
         </p>

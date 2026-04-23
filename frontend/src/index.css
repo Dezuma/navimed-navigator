@@ -244,3 +244,30 @@ button {
 .nm-date-pill.selected small {
   color: rgba(255, 255, 255, 0.85);
 }
+
+.nm-flow-pills {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 4px;
+}
+
+.nm-flow-pills::-webkit-scrollbar {
+  display: none;
+}
+
+.nm-flow-pill {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  padding: 5px 10px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #334155;
+  background: #e2e8f0;
+}
+
+.nm-flow-pill.active {
+  color: #fff;
+  background: linear-gradient(120deg, #0ea5e9, #2563eb);
+}

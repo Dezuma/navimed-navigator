@@ -1,5 +1,6 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { AskNaviBar } from "../components/AskNaviBar";
+import { CoreFlowPills } from "../components/CoreFlowPills";
 import { ScreenChrome } from "../components/ScreenChrome";
 
 export function VisitDetail() {
@@ -13,6 +14,7 @@ export function VisitDetail() {
         className="nm-scroll"
         style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0, paddingBottom: 8 }}
       >
+        <CoreFlowPills active={upcoming ? "checkin" : "postvisit"} />
         <div className="nm-card" style={{ marginTop: 12 }}>
           <div style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--nm-muted)", textTransform: "uppercase" }}>
             {upcoming ? "Upcoming" : "Completed"}
@@ -44,7 +46,7 @@ export function VisitDetail() {
 
         <AskNaviBar
           placeholder={upcoming ? "Ask Navi about this visit…" : "Ask Navi to explain my summary…"}
-          context={upcoming ? "visit-upcoming" : "visit-past"}
+          context={upcoming ? "visit-upcoming PT0141" : "visit-past PT0141"}
         />
       </div>
     </ScreenChrome>

@@ -12,6 +12,7 @@ export function ScreenChrome({ title, children, right }: Props) {
   const [menu, setMenu] = useState(false);
   return (
     <PhoneShell>
+      <div style={{ height: 6, background: "linear-gradient(90deg, #22d3ee, #2563eb)" }} />
       <div
         style={{
           display: "flex",

@@ -1,0 +1,9 @@
+provider_id,provider_name,specialty,clinic_id,avg_visit_minutes,late_running_probability,accepting_new_patients_flag,telehealth_supported_flag
+PR001,Dr. Anika Patel,primary_care,CL001,20,0.18,True,True
+PR002,Dr. James Reed,primary_care,CL002,40,0.25,True,False
+PR003,Dr. Sarah Kim,cardiology,CL001,20,0.22,True,True
+PR004,Dr. Luis Morales,orthopedics,CL003,40,0.08,True,True
+PR005,Dr. Priya Shah,endocrinology,CL003,20,0.08,False,True
+PR006,Dr. Emily Brooks,family_medicine,CL002,40,0.25,True,True
+PR007,Dr. David Warren,dermatology,CL001,30,0.31,True,False
+PR008,Dr. Olivia Cole,behavioral_health,CL002,25,0.15,True,False

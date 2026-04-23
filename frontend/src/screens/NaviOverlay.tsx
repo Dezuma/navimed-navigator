@@ -123,6 +123,46 @@ export function NaviOverlay() {
             <p style={{ margin: "8px 0 0", fontSize: "0.74rem", color: "var(--nm-muted)" }}>
               Source: {describeSource(response)}
             </p>
+            {response.structured ? (
+              <details style={{ marginTop: 10 }}>
+                <summary style={{ cursor: "pointer", fontSize: "0.8rem", fontWeight: 600 }}>
+                  Follow-up JSON
+                </summary>
+                <pre
+                  style={{
+                    margin: "8px 0 0",
+                    padding: 10,
+                    borderRadius: 8,
+                    background: "#0f172a",
+                    color: "#dbeafe",
+                    fontSize: "0.73rem",
+                    overflowX: "auto",
+                  }}
+                >
+                  {JSON.stringify(response.structured, null, 2)}
+                </pre>
+              </details>
+            ) : null}
+            {response.evidence ? (
+              <details style={{ marginTop: 8 }}>
+                <summary style={{ cursor: "pointer", fontSize: "0.8rem", fontWeight: 600 }}>
+                  Evidence snapshot
+                </summary>
+                <pre
+                  style={{
+                    margin: "8px 0 0",
+                    padding: 10,
+                    borderRadius: 8,
+                    background: "#0b1220",
+                    color: "#bae6fd",
+                    fontSize: "0.72rem",
+                    overflowX: "auto",
+                  }}
+                >
+                  {JSON.stringify(response.evidence, null, 2)}
+                </pre>
+              </details>
+            ) : null}
             <div className="nm-chip-row" style={{ marginTop: 8 }}>
               {response.followUps.map((choice) => (
                 <button

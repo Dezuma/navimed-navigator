@@ -1,0 +1,5 @@
+clinic_id,clinic_name,city,zip,parking_difficulty_score,public_transport_access_score,telehealth_supported_flag
+CL001,NaviMed Downtown Primary Care,Nashville,37203,4,5,True
+CL002,NaviMed East Family Health,Nashville,37206,2,3,True
+CL003,NaviMed Brentwood Internal Medicine,Brentwood,37027,3,1,True
+CL004,NaviMed South Urgent Access,Antioch,37013,2,2,False

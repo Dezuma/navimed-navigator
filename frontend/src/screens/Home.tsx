@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { AskNaviBar } from "../components/AskNaviBar";
+import { CoreFlowPills } from "../components/CoreFlowPills";
 import { ScreenChrome } from "../components/ScreenChrome";
 
 export function Home() {
@@ -11,6 +12,7 @@ export function Home() {
         className="nm-scroll"
         style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0, paddingBottom: 8 }}
       >
+        <CoreFlowPills active="home" />
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 8, marginBottom: 16 }}>
           <div
             style={{
@@ -55,10 +57,25 @@ export function Home() {
             >
               All appointments
             </button>
+            <button
+              type="button"
+              className="nm-btn nm-btn-ghost"
+              style={{ border: "1px solid var(--nm-border)" }}
+              onClick={() => navigate("/visit/upcoming")}
+            >
+              Check-in flow
+            </button>
+          </div>
+          <div className="nm-chip-row" style={{ marginTop: 12 }}>
+            {["Pre-Visit", "Post-Visit", "Re-entry"].map((x) => (
+              <span key={x} className="nm-chip">
+                {x}
+              </span>
+            ))}
           </div>
         </div>
 
-        <AskNaviBar context="home-dashboard" />
+        <AskNaviBar context="home-dashboard PT0141" />
       </div>
     </ScreenChrome>
   );
