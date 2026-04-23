@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { Appointments } from "./screens/Appointments";
 import { AuthPick } from "./screens/AuthPick";
 import { Booked } from "./screens/Booked";
+import { DemoScenes } from "./screens/DemoScenes";
 import { Home } from "./screens/Home";
 import { Login } from "./screens/Login";
 import { NaviIntro } from "./screens/NaviIntro";
@@ -50,6 +51,7 @@ export default function App() {
         <Route path="/postvisit/summary" element={<PostVisitSummary />} />
         <Route path="/postvisit/test-results" element={<TestResults />} />
         <Route path="/booked" element={<Booked />} />
+        <Route path="/demo-scenes" element={<DemoScenes />} />
         <Route path="/overlay/:kind" element={<OverlayStates />} />
         <Route path="/provider/mobile" element={<ProviderDashboardMobile />} />
         <Route path="/provider/tablet" element={<ProviderDashboardTablet />} />
