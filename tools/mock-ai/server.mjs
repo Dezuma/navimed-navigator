@@ -32,6 +32,7 @@ let appointments = [];
 let reminders = [];
 let preferences = [];
 let transport = [];
+let medicalProfiles = {};
 const providerById = new Map();
 const clinicById = new Map();
 const prefByPatientId = new Map();
@@ -84,6 +85,15 @@ function loadDataSources() {
   reminders = csvRows(join(DATA_DIR, "reminder_events.csv"));
   preferences = csvRows(join(DATA_DIR, "scheduling_preferences.csv"));
   transport = csvRows(join(DATA_DIR, "transport_context.csv"));
+  medicalProfiles = {};
+  const medicalPath = join(DATA_DIR, "medical_profiles.json");
+  if (existsSync(medicalPath)) {
+    try {
+      medicalProfiles = JSON.parse(readFileSync(medicalPath, "utf8"));
+    } catch {
+      medicalProfiles = {};
+    }
+  }
 
   providerById.clear();
   clinicById.clear();
@@ -97,6 +107,10 @@ function loadDataSources() {
     arr.push(a);
     appointmentsByPatientId.set(a.patient_id, arr);
   }
+}
+
+function medicalProfileForPatient(patientId) {
+  return medicalProfiles[patientId] || null;
 }
 
 function clientIp(req) {
@@ -196,6 +210,35 @@ function responseFromIntent(intent) {
         followUps: ["Schedule a visit", "Help me prepare", "Explain my summary"],
       };
   }
+}
+
+function isMedicalDataPrompt(prompt = "") {
+  return /\b(lab|labs|liver|enzyme|enzymes|alt|ast|glucose|cholesterol|blood pressure|bp|vital|vitals|medication|medications|allerg|condition|medical|result|results)\b/i.test(prompt);
+}
+
+function medicalResponseText(profile) {
+  if (!profile) return "";
+  const watchItems = profile.labs
+    .flatMap((panel) => panel.results.map((result) => ({
+      panel: panel.panel,
+      name: result.name,
+      value: `${result.value} ${result.unit}`,
+      reference: result.reference_range,
+      status: result.status,
+    })))
+    .filter((result) => result.status !== "in_range");
+  const watchText = watchItems
+    .map((item) => `${item.name} ${item.value} (${item.status}; ref ${item.reference})`)
+    .join("; ");
+  const medText = profile.medications
+    .map((med) => `${med.name} ${med.dose} ${med.frequency}`)
+    .join(", ");
+  return [
+    `For ${profile.display_name}'s demo chart, I found blood pressure ${profile.vitals.blood_pressure}, heart rate ${profile.vitals.heart_rate}, oxygen saturation ${profile.vitals.oxygen_saturation}, and temperature ${profile.vitals.temperature}.`,
+    `Current context includes ${profile.conditions.join(", ")}. Listed allergy: ${profile.allergies.join(", ")}. Medication on file: ${medText}.`,
+    `Items to review with the provider: ${watchText}. Care gaps: ${profile.care_gaps.join("; ")}.`,
+    "This is synthetic demo data for care navigation only, not a diagnosis or medication recommendation.",
+  ].join(" ");
 }
 
 function pickPatientId(prompt, context) {
@@ -321,11 +364,25 @@ function promptTemplates() {
 
 function loadWatsonxApiKey() {
   if (!existsSync(WATSONX_APIKEY_FILE)) return "";
+  const text = readFileSync(WATSONX_APIKEY_FILE, "utf8").trim();
+  if (!text) return "";
   try {
-    const raw = JSON.parse(readFileSync(WATSONX_APIKEY_FILE, "utf8"));
+    const raw = JSON.parse(text);
     return typeof raw.apikey === "string" ? raw.apikey : "";
   } catch {
-    return "";
+    const explicit = text.match(
+      /^\s*(?:apikey|api_key|ibm_cloud_api_key|watsonx_api_key|api key|key)\s*[:=]\s*["']?([^\s"']+)/im,
+    );
+    if (explicit?.[1]) return explicit[1].trim();
+
+    const line = text
+      .split(/\r?\n/)
+      .map((item) => item.trim().replace(/^["']|["']$/g, ""))
+      .find((item) => item.length >= 20 && !/\s/.test(item));
+    if (line) return line;
+
+    const token = text.match(/[A-Za-z0-9_.-]{20,}/);
+    return token?.[0] || "";
   }
 }
 
@@ -441,8 +498,28 @@ createServer(async (req, res) => {
         appointments: appointments.length,
         reminders: reminders.length,
         preferences: preferences.length,
+        medicalProfiles: Object.keys(medicalProfiles).length,
       },
       watsonxEnabled: WATSONX_ROUTE_ENABLED,
+    });
+  }
+
+  if (req.method === "GET" && url.pathname === "/navi/medical-summary") {
+    const patientId = clampStr(String(url.searchParams.get("patient_id") || "PT0141"), 32).toUpperCase();
+    const profile = medicalProfileForPatient(patientId);
+    if (!profile) {
+      return json(req, res, 404, { error: "No medical profile found", patient_id: patientId });
+    }
+    return json(req, res, 200, {
+      event_type: "MedicalContextReady",
+      patient_id: patientId,
+      profile,
+      guardrails: [
+        "synthetic_demo_data_only",
+        "no_diagnosis",
+        "no_medication_changes",
+        "review_with_clinician",
+      ],
     });
   }
 
@@ -462,6 +539,7 @@ createServer(async (req, res) => {
         appointments: appointments.length,
         reminders: reminders.length,
         preferences: preferences.length,
+        medicalProfiles: Object.keys(medicalProfiles).length,
       },
     });
   }
@@ -526,6 +604,9 @@ createServer(async (req, res) => {
       const template = responseFromIntent(intent);
       const recommendations = recommendSlots(patientId, prompt);
       const followUpAppt = chooseUpcomingFollowUp(patientId);
+      const medicalProfile = medicalProfileForPatient(patientId);
+      const dataBackedText =
+        medicalProfile && isMedicalDataPrompt(prompt) ? medicalResponseText(medicalProfile) : template.text;
 
       let aiMessage = "";
       if (WATSONX_ROUTE_ENABLED) {
@@ -536,6 +617,7 @@ createServer(async (req, res) => {
               patient_id: patientId,
               top_slots: recommendations.ranked_slots.slice(0, 3),
               follow_up_appointment: followUpAppt,
+              medical_context: medicalProfile,
             })}\n\nOutput JSON with keys patient_message and follow_up_json only.`,
           );
         } catch {
@@ -553,7 +635,7 @@ createServer(async (req, res) => {
       }
 
       return json(req, res, 200, {
-        text: generated?.patient_message || template.text,
+        text: generated?.patient_message || dataBackedText,
         intent,
         followUps: generated?.follow_up_json?.follow_up_actions || template.followUps,
         structured: generated?.follow_up_json || {
@@ -575,6 +657,21 @@ createServer(async (req, res) => {
             modality: s.modality,
             score: s.score,
           })),
+          medical_context_summary: medicalProfile
+            ? {
+                vitals: medicalProfile.vitals,
+                abnormal_or_watch_items: medicalProfile.labs
+                  .flatMap((panel) => panel.results.map((result) => ({
+                    panel: panel.panel,
+                    name: result.name,
+                    value: `${result.value} ${result.unit}`,
+                    status: result.status,
+                  })))
+                  .filter((result) => result.status !== "in_range"),
+                care_gaps: medicalProfile.care_gaps,
+                safety_note: medicalProfile.safety_note,
+              }
+            : null,
         },
         evidence: {
           patient_id: patientId,
@@ -586,9 +683,11 @@ createServer(async (req, res) => {
             transport: transport.length,
             preferences: preferences.length,
             clinics: clinics.length,
+            medical_profiles: Object.keys(medicalProfiles).length,
           },
           top_recommendations: recommendations.ranked_slots.slice(0, 3),
           upcoming_appointment: followUpAppt,
+          medical_context: medicalProfile,
         },
       });
     }

@@ -1,0 +1,63 @@
+{
+  "PT0141": {
+    "patient_id": "PT0141",
+    "display_name": "Michael Carter",
+    "age": 52,
+    "conditions": [
+      "hypertension",
+      "family history of diabetes",
+      "recent elevated liver enzymes"
+    ],
+    "allergies": [
+      "penicillin"
+    ],
+    "medications": [
+      {
+        "name": "lisinopril",
+        "dose": "10 mg",
+        "frequency": "daily",
+        "purpose": "blood pressure"
+      }
+    ],
+    "vitals": {
+      "blood_pressure": "138/86 mmHg",
+      "heart_rate": "78 bpm",
+      "oxygen_saturation": "98%",
+      "temperature": "98.4 F",
+      "recorded_at": "2026-04-23T14:30:00"
+    },
+    "labs": [
+      {
+        "panel": "Lipid Panel",
+        "collected_at": "2026-04-20",
+        "results": [
+          { "name": "Total Cholesterol", "value": "176", "unit": "mg/dL", "reference_range": "< 200", "status": "in_range" },
+          { "name": "LDL", "value": "94", "unit": "mg/dL", "reference_range": "< 100", "status": "in_range" },
+          { "name": "HDL", "value": "54", "unit": "mg/dL", "reference_range": "> 40", "status": "in_range" }
+        ]
+      },
+      {
+        "panel": "Liver Function Panel",
+        "collected_at": "2026-04-20",
+        "results": [
+          { "name": "ALT", "value": "68", "unit": "U/L", "reference_range": "7-56", "status": "high" },
+          { "name": "AST", "value": "42", "unit": "U/L", "reference_range": "10-40", "status": "slightly_high" },
+          { "name": "Bilirubin", "value": "0.8", "unit": "mg/dL", "reference_range": "0.1-1.2", "status": "in_range" }
+        ]
+      },
+      {
+        "panel": "Glucose",
+        "collected_at": "2026-04-20",
+        "results": [
+          { "name": "Fasting Glucose", "value": "104", "unit": "mg/dL", "reference_range": "70-99", "status": "slightly_high" }
+        ]
+      }
+    ],
+    "care_gaps": [
+      "review elevated liver enzymes with provider",
+      "recheck blood pressure trend",
+      "discuss family history of diabetes at follow-up"
+    ],
+    "safety_note": "Synthetic demo data only. NaviMed does not diagnose, prescribe, or replace clinical care."
+  }
+}

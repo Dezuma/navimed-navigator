@@ -16,8 +16,8 @@ export function AskNaviBar({ placeholder = "Ask Navi…", context }: Props) {
     const prompt = q.trim();
     const t = prompt.toLowerCase();
     if (!prompt) return;
-    if (t.includes("schedule") || t.includes("book")) navigate("/schedule");
-    else if (t.includes("appointment")) navigate("/appointments");
+    if (t === "schedule a visit" || t === "book appointment") navigate("/schedule");
+    else if (t === "appointments") navigate("/appointments");
     else navigate("/navi", { state: { mode: "thinking", prompt, context } });
     setQ("");
   };
