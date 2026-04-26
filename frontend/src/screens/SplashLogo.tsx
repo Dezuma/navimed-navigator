@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { PhoneShell } from "../components/PhoneShell";
+import { visualAssets } from "../visual-assets";
 
 export function SplashLogo() {
   const navigate = useNavigate();
@@ -23,10 +24,11 @@ export function SplashLogo() {
           background: "#fff",
         }}
       >
-        <div className="nm-logo" style={{ marginBottom: 16 }}>
-          +
-        </div>
-        <h1 style={{ margin: 0, fontSize: "1.6rem", fontWeight: 700, letterSpacing: "-0.02em" }}>NaviMed</h1>
+        <img
+          src={visualAssets.wordmark}
+          alt="NaviMed"
+          style={{ width: "min(280px, 88%)", marginBottom: 16 }}
+        />
         <p className="nm-muted" style={{ marginTop: 6, fontSize: "0.85rem" }}>
           Navigate your care
         </p>

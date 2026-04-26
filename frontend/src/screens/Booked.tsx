@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { PhoneShell } from "../components/PhoneShell";
+import { visualAssets } from "../visual-assets";
 
 export function Booked() {
   const navigate = useNavigate();
@@ -16,22 +17,11 @@ export function Booked() {
           textAlign: "center",
         }}
       >
-        <div
-          style={{
-            width: 72,
-            height: 72,
-            borderRadius: "50%",
-            background: "var(--nm-blue-soft)",
-            color: "var(--nm-blue)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: 36,
-            marginBottom: 20,
-          }}
-        >
-          {"\u2713"}
-        </div>
+        <img
+          src={visualAssets.scheduling}
+          alt="Appointment confirmed"
+          style={{ width: "100%", maxWidth: 280, borderRadius: 22, marginBottom: 20, background: "#fff" }}
+        />
         <h1 className="nm-h1">You&apos;re booked!</h1>
         <p className="nm-muted">Dr. Brooks · Wed, Apr 16 at 10:30 AM</p>
         <div className="nm-card" style={{ marginTop: 20, width: "100%", textAlign: "left" }}>

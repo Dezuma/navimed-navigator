@@ -44,7 +44,17 @@ function inferIntent(prompt: string): NaviIntent {
   if (p.includes("schedule") || p.includes("book") || p.includes("reschedule")) return "schedule";
   if (p.includes("appointment") || p.includes("check in")) return "appointments";
   if (p.includes("prepare") || p.includes("prep") || p.includes("bring")) return "prep";
-  if (p.includes("summary") || p.includes("result") || p.includes("after visit")) return "summary";
+  if (
+    p.includes("summary") ||
+    p.includes("result") ||
+    p.includes("after visit") ||
+    p.includes("post visit") ||
+    p.includes("post-visit") ||
+    p.includes("completed my visit") ||
+    p.includes("completed visit") ||
+    p.includes("follow-up") ||
+    p.includes("follow up")
+  ) return "summary";
   return "general";
 }
 

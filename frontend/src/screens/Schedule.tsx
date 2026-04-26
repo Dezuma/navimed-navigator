@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { CoreFlowPills } from "../components/CoreFlowPills";
 import { NaviMascot } from "../components/NaviMascot";
 import { ScreenChrome } from "../components/ScreenChrome";
+import { visualAssets } from "../visual-assets";
 
 const SLOTS = ["9:00 AM", "9:30 AM", "10:00 AM", "10:30 AM", "11:00 AM", "2:00 PM", "3:30 PM"];
 
@@ -39,6 +40,11 @@ export function Schedule() {
             ? "Got it! Let's find a better time for you."
             : "Here's the next available appointments with Dr. Brooks."}
         </h3>
+        <img
+          src={visualAssets.scheduling}
+          alt="Patient scheduling an appointment"
+          style={{ width: "100%", borderRadius: 18, margin: "10px 0 14px", background: "#fff" }}
+        />
 
         <div className="nm-date-strip">
           {days.map((d, i) => (

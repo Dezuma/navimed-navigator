@@ -154,7 +154,17 @@ function inferIntent(prompt = "") {
   if (p.includes("schedule") || p.includes("book") || p.includes("reschedule")) return "schedule";
   if (p.includes("appointment") || p.includes("check in")) return "appointments";
   if (p.includes("prepare") || p.includes("prep") || p.includes("bring")) return "prep";
-  if (p.includes("summary") || p.includes("result") || p.includes("after visit")) return "summary";
+  if (
+    p.includes("summary") ||
+    p.includes("result") ||
+    p.includes("after visit") ||
+    p.includes("post visit") ||
+    p.includes("post-visit") ||
+    p.includes("completed my visit") ||
+    p.includes("completed visit") ||
+    p.includes("follow-up") ||
+    p.includes("follow up")
+  ) return "summary";
   return "general";
 }
 
@@ -224,6 +234,7 @@ function recommendSlots(patientId, prompt) {
     : /\bin[- ]?person\b/i.test(prompt)
       ? "in_person"
       : null;
+  const explicitModalityRequest = Boolean(desiredModalityFromPrompt);
   const modalityNeed = desiredModalityFromPrompt || preferredModality;
 
   const candidates = slots
@@ -237,6 +248,8 @@ function recommendSlots(patientId, prompt) {
       const specialtyScore =
         preferredSpecialty && s.specialty === preferredSpecialty ? 1 : 0;
       const modalityScore = modalityNeed && s.modality === modalityNeed ? 1 : 0;
+      const modalityMismatchPenalty =
+        explicitModalityRequest && modalityNeed && s.modality !== modalityNeed ? 1 : 0;
       const dayPartScore = dayPart(start) === preferredDayPart ? 1 : 0;
       const sameProviderScore =
         sameProviderId && s.provider_id === sameProviderId ? 1 : 0;
@@ -249,11 +262,12 @@ function recommendSlots(patientId, prompt) {
       const weighted =
         base +
         specialtyScore * 1.2 +
-        modalityScore * 0.9 +
+        modalityScore * (explicitModalityRequest ? 2.2 : 0.9) +
         dayPartScore * 0.5 +
         sameProviderScore * sameProviderWeight +
         soonestScore * soonestWeight +
         clinicAccess * locationWeight -
+        modalityMismatchPenalty * 0.9 -
         latePenalty * 0.7;
       return {
         ...s,

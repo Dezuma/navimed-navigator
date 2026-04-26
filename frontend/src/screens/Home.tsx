@@ -3,6 +3,7 @@ import { AskNaviBar } from "../components/AskNaviBar";
 import { CoreFlowPills } from "../components/CoreFlowPills";
 import { NaviMascot } from "../components/NaviMascot";
 import { ScreenChrome } from "../components/ScreenChrome";
+import { visualAssets } from "../visual-assets";
 
 export function Home() {
   const navigate = useNavigate();
@@ -38,13 +39,10 @@ export function Home() {
       >
         <CoreFlowPills active="home" />
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 8, marginBottom: 16 }}>
-          <div
-            style={{
-              width: 48,
-              height: 48,
-              borderRadius: "50%",
-              background: "linear-gradient(135deg, #94a3b8, #cbd5e1)",
-            }}
+          <img
+            src={visualAssets.logo}
+            alt="NaviMed"
+            style={{ width: 48, height: 48, borderRadius: "50%", objectFit: "cover" }}
           />
           <div>
             <div style={{ fontWeight: 700, fontSize: "1.25rem" }}>Hello, Michael</div>
@@ -53,6 +51,11 @@ export function Home() {
         </div>
 
         <div className="nm-card" style={{ marginBottom: 12, background: "linear-gradient(120deg,#dff7f6,#f8fbff)" }}>
+          <img
+            src={visualAssets.reminders}
+            alt="Patient reminder workflow"
+            style={{ width: "100%", borderRadius: 14, marginBottom: 12 }}
+          />
           <div style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--nm-teal)", textTransform: "uppercase", marginBottom: 8 }}>
             {mode === "no-appt" ? "No upcoming visits" : "Next visit"}
           </div>

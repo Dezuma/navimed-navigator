@@ -1,21 +1,22 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { PhoneShell } from "../components/PhoneShell";
+import { visualAssets } from "../visual-assets";
 
 const SLIDES = [
   {
     title: "Fast, Frictionless Scheduling",
     body: "Book or reschedule care in under a minute.",
-    art: "schedule",
+    art: visualAssets.scheduling,
   },
   {
     title: "Smarter Visit Prep",
     body: "Share symptoms ahead of time. We summarize them for your doctor.",
-    art: "prep",
+    art: visualAssets.providerVisit,
   },
   {
     title: "Stay on track",
     body: "Get reminders, clear summaries, and simple next steps.",
-    art: "track",
+    art: visualAssets.reminders,
   },
 ];
 
@@ -25,166 +26,6 @@ export function Onboarding() {
   const i = Math.min(2, Math.max(0, Number(step) || 0));
   const slide = SLIDES[i];
   const last = i === SLIDES.length - 1;
-
-  const renderArt = () => {
-    if (slide.art === "schedule") {
-      return (
-        <div style={{ position: "relative", width: 220, height: 140 }}>
-          <div
-            style={{
-              position: "absolute",
-              left: 26,
-              top: 22,
-              width: 60,
-              height: 100,
-              borderRadius: 18,
-              background: "#1e293b",
-            }}
-          />
-          <div
-            style={{
-              position: "absolute",
-              right: 20,
-              top: 18,
-              width: 120,
-              height: 84,
-              borderRadius: 14,
-              background: "#fff",
-              border: "1px solid #dbeafe",
-              boxShadow: "0 6px 20px rgba(30,78,216,0.12)",
-            }}
-          />
-          <div
-            style={{
-              position: "absolute",
-              right: 28,
-              top: 30,
-              width: 104,
-              height: 8,
-              borderRadius: 999,
-              background: "#dbeafe",
-            }}
-          />
-          <div
-            style={{
-              position: "absolute",
-              right: 28,
-              top: 46,
-              width: 70,
-              height: 8,
-              borderRadius: 999,
-              background: "#bfdbfe",
-            }}
-          />
-          <div
-            style={{
-              position: "absolute",
-              right: 28,
-              top: 64,
-              width: 52,
-              height: 20,
-              borderRadius: 999,
-              background: "#2563eb",
-            }}
-          />
-        </div>
-      );
-    }
-    if (slide.art === "prep") {
-      return (
-        <div style={{ position: "relative", width: 220, height: 140 }}>
-          <div
-            style={{
-              position: "absolute",
-              left: 30,
-              top: 24,
-              width: 72,
-              height: 88,
-              borderRadius: 999,
-              background: "linear-gradient(180deg,#22d3ee,#3b82f6)",
-              opacity: 0.2,
-            }}
-          />
-          <div
-            style={{
-              position: "absolute",
-              right: 28,
-              top: 22,
-              width: 132,
-              height: 92,
-              borderRadius: 16,
-              background: "#fff",
-              border: "1px solid #dbeafe",
-            }}
-          />
-          <div
-            style={{
-              position: "absolute",
-              right: 38,
-              top: 34,
-              width: 108,
-              height: 8,
-              borderRadius: 999,
-              background: "#dbeafe",
-            }}
-          />
-          <div
-            style={{
-              position: "absolute",
-              right: 38,
-              top: 50,
-              width: 82,
-              height: 8,
-              borderRadius: 999,
-              background: "#bfdbfe",
-            }}
-          />
-          <div
-            style={{
-              position: "absolute",
-              right: 38,
-              top: 67,
-              width: 96,
-              height: 8,
-              borderRadius: 999,
-              background: "#bfdbfe",
-            }}
-          />
-        </div>
-      );
-    }
-    return (
-      <div style={{ position: "relative", width: 220, height: 140 }}>
-        {[0, 1, 2].map((n) => (
-          <div
-            key={n}
-            style={{
-              position: "absolute",
-              right: 24,
-              top: 24 + n * 30,
-              width: 18,
-              height: 18,
-              borderRadius: "50%",
-              border: "2px solid #22d3ee",
-              background: "#fff",
-            }}
-          />
-        ))}
-        <div
-          style={{
-            position: "absolute",
-            left: 24,
-            top: 34,
-            width: 88,
-            height: 88,
-            borderRadius: "50%",
-            background: "linear-gradient(140deg,#60a5fa,#2563eb)",
-            opacity: 0.2,
-          }}
-        />
-      </div>
-    );
-  };
 
   return (
     <PhoneShell>
@@ -225,7 +66,11 @@ export function Onboarding() {
               marginBottom: 24,
             }}
           >
-            {renderArt()}
+            <img
+              src={slide.art}
+              alt=""
+              style={{ width: "100%", height: "100%", objectFit: "contain", borderRadius: 18 }}
+            />
           </div>
           <h1 className="nm-h1" style={{ fontSize: "2rem", marginBottom: 10 }}>
             {slide.title}

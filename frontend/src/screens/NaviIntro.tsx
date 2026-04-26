@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { PhoneShell } from "../components/PhoneShell";
 import { NaviMascot } from "../components/NaviMascot";
+import { visualAssets } from "../visual-assets";
 
 export function NaviIntro() {
   const navigate = useNavigate();
@@ -12,7 +13,7 @@ export function NaviIntro() {
         style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}
       >
         <div style={{ margin: "32px 0 20px" }}>
-          <NaviMascot size={88} />
+          <NaviMascot size={108} pulse />
         </div>
         <h1 className="nm-h1">Hi, I'm Navi</h1>
         <p className="nm-muted" style={{ maxWidth: 320 }}>
@@ -29,6 +30,11 @@ export function NaviIntro() {
         >
           <li style={{ marginBottom: 8 }}>I can help with scheduling, re-visit prep, check-ins, and test results.</li>
         </ul>
+        <img
+          src={visualAssets.appIconMockup}
+          alt="NaviMed app icon on a phone home screen"
+          style={{ width: "100%", maxWidth: 190, borderRadius: 20, marginTop: 10, boxShadow: "var(--nm-shadow)" }}
+        />
         <button
           type="button"
           className="nm-btn nm-btn-primary"

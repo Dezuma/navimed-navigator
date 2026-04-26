@@ -41,6 +41,11 @@ button {
   font-family: inherit;
 }
 
+@keyframes nm-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.04); opacity: 0.92; }
+}
+
 .nm-phone {
   width: min(390px, 100vw);
   min-height: min(844px, 100dvh);
