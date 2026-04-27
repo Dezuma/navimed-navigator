@@ -166,8 +166,8 @@ function json(req, res, status, body) {
 function inferIntent(prompt = "") {
   const p = prompt.toLowerCase();
   if (p.includes("schedule") || p.includes("book") || p.includes("reschedule")) return "schedule";
-  if (p.includes("appointment") || p.includes("check in")) return "appointments";
   if (p.includes("prepare") || p.includes("prep") || p.includes("bring")) return "prep";
+  if (p.includes("appointment") || p.includes("check in")) return "appointments";
   if (
     p.includes("summary") ||
     p.includes("result") ||
@@ -213,11 +213,15 @@ function responseFromIntent(intent) {
 }
 
 function isMedicalDataPrompt(prompt = "") {
-  return /\b(lab|labs|liver|enzyme|enzymes|alt|ast|glucose|cholesterol|blood pressure|bp|vital|vitals|medication|medications|allerg|condition|medical|result|results)\b/i.test(prompt);
+  return /\b(lab|labs|liver|enzyme|enzymes|alt|ast|glucose|cholesterol|blood pressure|bp|vital|vitals|med|meds|medication|medications|allerg|condition|medical|result|results|sick|ill|unwell|symptom|symptoms|pain|nausea|dizzy|fever|tired|fatigue)\b/i.test(prompt);
 }
 
-function medicalResponseText(profile) {
+function medicalResponseText(profile, prompt = "") {
   if (!profile) return "";
+  const p = prompt.toLowerCase();
+  const sickPrompt = /\b(sick|ill|unwell|symptom|symptoms|pain|nausea|dizzy|fever|tired|fatigue)\b/i.test(prompt);
+  const medsPrompt = /\b(med|meds|medication|medications|allerg|allergy|allergies)\b/i.test(prompt);
+  const labsPrompt = /\b(lab|labs|liver|enzyme|enzymes|alt|ast|glucose|cholesterol|result|results)\b/i.test(prompt);
   const watchItems = profile.labs
     .flatMap((panel) => panel.results.map((result) => ({
       panel: panel.panel,
@@ -233,12 +237,74 @@ function medicalResponseText(profile) {
   const medText = profile.medications
     .map((med) => `${med.name} ${med.dose} ${med.frequency}`)
     .join(", ");
-  return [
-    `For ${profile.display_name}'s demo chart, I found blood pressure ${profile.vitals.blood_pressure}, heart rate ${profile.vitals.heart_rate}, oxygen saturation ${profile.vitals.oxygen_saturation}, and temperature ${profile.vitals.temperature}.`,
-    `Current context includes ${profile.conditions.join(", ")}. Listed allergy: ${profile.allergies.join(", ")}. Medication on file: ${medText}.`,
-    `Items to review with the provider: ${watchText}. Care gaps: ${profile.care_gaps.join("; ")}.`,
-    "This is synthetic demo data for care navigation only, not a diagnosis or medication recommendation.",
-  ].join(" ");
+  const lines = [];
+  if (sickPrompt) {
+    lines.push("I'm sorry you're not feeling well. I can organize Michael Carter's chart context for a provider, but I cannot diagnose or recommend treatment.");
+  } else if (medsPrompt) {
+    lines.push(`For ${profile.display_name}'s medication review, I found medication on file: ${medText}. Listed allergy: ${profile.allergies.join(", ")}.`);
+  } else if (labsPrompt) {
+    lines.push(`For ${profile.display_name}'s lab review, the watch items are: ${watchText}. In-range context includes total cholesterol 176 mg/dL, LDL 94 mg/dL, HDL 54 mg/dL, and bilirubin 0.8 mg/dL.`);
+  } else {
+    lines.push(`For ${profile.display_name}'s chart, I found current medical context from vitals, labs, medications, allergies, and care gaps.`);
+  }
+  lines.push(`Vitals: blood pressure ${profile.vitals.blood_pressure}, heart rate ${profile.vitals.heart_rate}, oxygen saturation ${profile.vitals.oxygen_saturation}, and temperature ${profile.vitals.temperature}.`);
+  if (!medsPrompt) {
+    lines.push(`Current context includes ${profile.conditions.join(", ")}. Listed allergy: ${profile.allergies.join(", ")}. Medication on file: ${medText}.`);
+  }
+  if (!labsPrompt) {
+    lines.push(`Items to review with the provider: ${watchText}.`);
+  }
+  lines.push(`Care gaps: ${profile.care_gaps.join("; ")}.`);
+  lines.push("For new, worsening, or urgent symptoms, contact a clinician or emergency services.");
+  return lines.join(" ");
+}
+
+function slotSummary(recommendations) {
+  const slots = recommendations.ranked_slots.slice(0, 3);
+  if (!slots.length) return "I do not see open appointment options in the current scheduling data.";
+  return slots
+    .map((slot, index) => `${index + 1}) ${slot.provider_name} at ${slot.clinic_name}, ${slot.slot_start_ts}, ${slot.modality}, score ${slot.score}`)
+    .join("; ");
+}
+
+function promptAwareResponseText(prompt, intent, profile, recommendations, fallbackText) {
+  const p = prompt.toLowerCase();
+  const wantsScheduling = intent === "schedule" || /\b(schedule|book|follow-up|follow up|reschedule)\b/i.test(prompt);
+  const wantsMedical = profile && isMedicalDataPrompt(prompt);
+
+  if (wantsMedical && wantsScheduling) {
+    return `${medicalResponseText(profile, prompt)} Based on the scheduling data, the best matching appointment options are: ${slotSummary(recommendations)}.`;
+  }
+
+  if (wantsMedical) {
+    return medicalResponseText(profile, prompt);
+  }
+
+  if (wantsScheduling) {
+    return `I found appointment options for Michael Carter using the live scheduling data: ${slotSummary(recommendations)}. I can help select one or compare by modality, clinic, or timing.`;
+  }
+
+  if (intent === "prep" && profile) {
+    const medText = profile.medications.map((med) => `${med.name} ${med.dose} ${med.frequency}`).join(", ");
+    return `For Michael Carter's visit prep, bring an ID, insurance card, and medication list. In the chart I see ${medText}, allergy to ${profile.allergies.join(", ")}, and care gaps: ${profile.care_gaps.join("; ")}. For new, worsening, or urgent symptoms, contact a clinician or emergency services.`;
+  }
+
+  if (intent === "appointments") {
+    return `I can help with Michael Carter's appointment details, check-in, reminders, and directions. The backend currently has ${appointments.length} appointments, ${slots.length} slots, ${providers.length} providers, and ${transport.length} transport records loaded.`;
+  }
+
+  return `${fallbackText} You can ask about Michael Carter PT0141, labs, medications, blood pressure, visit prep, appointment details, or follow-up scheduling.`;
+}
+
+function followUpsForPrompt(prompt, intent) {
+  if (isMedicalDataPrompt(prompt)) {
+    return ["Explain liver enzymes", "Review meds list", "Schedule follow-up", "Show care gaps"];
+  }
+  if (intent === "schedule") return ["Show telehealth options", "Compare earliest slots", "Schedule follow-up"];
+  if (intent === "prep") return ["Review meds list", "Show care gaps", "Open check-in"];
+  if (intent === "appointments") return ["Open appointments", "Start check-in", "Get directions"];
+  if (intent === "summary") return ["Explain labs", "Schedule follow-up", "Show next steps"];
+  return ["Explain labs", "Review meds list", "Schedule follow-up"];
 }
 
 function pickPatientId(prompt, context) {
@@ -515,7 +581,7 @@ createServer(async (req, res) => {
       patient_id: patientId,
       profile,
       guardrails: [
-        "synthetic_demo_data_only",
+        "care_navigation_only",
         "no_diagnosis",
         "no_medication_changes",
         "review_with_clinician",
@@ -605,8 +671,8 @@ createServer(async (req, res) => {
       const recommendations = recommendSlots(patientId, prompt);
       const followUpAppt = chooseUpcomingFollowUp(patientId);
       const medicalProfile = medicalProfileForPatient(patientId);
-      const dataBackedText =
-        medicalProfile && isMedicalDataPrompt(prompt) ? medicalResponseText(medicalProfile) : template.text;
+      const dataBackedText = promptAwareResponseText(prompt, intent, medicalProfile, recommendations, template.text);
+      const dataBackedFollowUps = followUpsForPrompt(prompt, intent);
 
       let aiMessage = "";
       if (WATSONX_ROUTE_ENABLED) {
@@ -637,7 +703,7 @@ createServer(async (req, res) => {
       return json(req, res, 200, {
         text: generated?.patient_message || dataBackedText,
         intent,
-        followUps: generated?.follow_up_json?.follow_up_actions || template.followUps,
+        followUps: generated?.follow_up_json?.follow_up_actions || dataBackedFollowUps,
         structured: generated?.follow_up_json || {
           event_type:
             intent === "schedule" || intent === "appointments"

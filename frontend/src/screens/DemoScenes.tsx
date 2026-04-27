@@ -20,7 +20,7 @@ const scenes = [
 
 export function DemoScenes() {
   return (
-    <ScreenChrome title="Demo Scenes">
+    <ScreenChrome title="Screen Library">
       <div className="nm-scroll" style={{ flex: 1 }}>
         <p className="nm-muted" style={{ margin: "10px 0 12px" }}>
           Non-linear screens for walkthroughs and QA.

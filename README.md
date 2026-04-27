@@ -89,19 +89,25 @@ Plus the supplied generator + notebook for reproducibility:
 - `tools/mock-ai/data_sources/generate_navimed_scheduling_data.py`
 - `tools/mock-ai/data_sources/navimed_scheduling_agent_notebook.ipynb`
 
-### Watsonx backend use (`apikey.json`)
+### Watsonx backend use (`apiWatson` or `apikey.json`)
 
 The backend can optionally route through watsonx if configured:
 
 ```bash
 cd tools/mock-ai
-export WATSONX_APIKEY_FILE=/home/dbz/Downloads/apikey.json
-export WATSONX_PROJECT_ID=your_project_id
+export WATSONX_APIKEY_FILE=/home/dbz/Downloads/apiWatson
+export WATSONX_PROJECT_ID=3a59db38-a8bc-4033-b779-8a3f2085aefe
 export WATSONX_REGION=us-south
 export WATSONX_MODEL=ibm/granite-3-8b-instruct
 export WATSONX_ROUTE_ENABLED=true
 npm start
 ```
+
+Project context from the exported sandbox:
+
+- watsonx project: `watsonx Hackathon Sandbox`
+- project GUID: `3a59db38-a8bc-4033-b779-8a3f2085aefe`
+- account ID: `f423e7cfa55547d3b940b22a4afe9619`
 
 If watsonx is unavailable, the data-backed deterministic path continues to work.
 

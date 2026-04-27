@@ -3,21 +3,59 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { NaviMascot } from "../components/NaviMascot";
 import { generateNaviResponse, type NaviGeneratedResponse } from "../lib/navi-ai";
 
-function describeSource(r: NaviGeneratedResponse): string {
-  if (r.source === "remote") {
-    return r.httpStatus != null ? `AI endpoint (HTTP ${r.httpStatus})` : "AI endpoint";
-  }
-  const fr = r.fallbackReason;
-  if (fr === "missing-endpoint") return "Smart fallback (no API URL in this build)";
-  if (fr === "timeout") return "Smart fallback (request timed out)";
-  if (fr === "aborted") return "Smart fallback (cancelled)";
-  if (fr === "http-error") return "Smart fallback (API error)";
-  if (fr === "invalid-response") return "Smart fallback (unexpected API shape)";
-  if (fr === "network") return "Smart fallback (network issue)";
-  return "Smart fallback";
+type LocState = { mode?: "listening" | "thinking"; prompt?: string; context?: string };
+
+type MedicalWatchItem = {
+  panel?: string;
+  name?: string;
+  value?: string;
+  status?: string;
+};
+
+type MedicalSummary = {
+  vitals?: Record<string, string>;
+  abnormal_or_watch_items?: MedicalWatchItem[];
+  care_gaps?: string[];
+  safety_note?: string;
+};
+
+type SlotSummary = {
+  slot_start_ts?: string;
+  provider_name?: string;
+  clinic_name?: string;
+  modality?: string;
+  score?: number;
+};
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
-type LocState = { mode?: "listening" | "thinking"; prompt?: string; context?: string };
+function getMedicalSummary(response: NaviGeneratedResponse): MedicalSummary | null {
+  const structured = response.structured;
+  if (!isRecord(structured)) return null;
+  const summary = structured.medical_context_summary;
+  return isRecord(summary) ? (summary as MedicalSummary) : null;
+}
+
+function getAppointmentSlots(response: NaviGeneratedResponse): SlotSummary[] {
+  const structured = response.structured;
+  if (!isRecord(structured) || !Array.isArray(structured.available_time_slots)) return [];
+  return structured.available_time_slots.filter(isRecord).map((item) => item as SlotSummary).slice(0, 3);
+}
+
+function prettyTime(value?: string) {
+  if (!value) return "Time pending";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
 
 export function NaviOverlay() {
   const navigate = useNavigate();
@@ -54,15 +92,127 @@ export function NaviOverlay() {
 
   const handleFollowUp = (choice: string) => {
     const c = choice.toLowerCase();
-    if (c.includes("slot") || c.includes("schedule") || c.includes("reschedule")) {
+    if (c.includes("schedule") || c.includes("slot") || c.includes("follow-up") || c.includes("follow up")) {
       navigate("/schedule");
       return;
     }
-    if (c.includes("appointment") || c.includes("check-in") || c.includes("check in")) {
+    if (c.includes("check-in") || c.includes("check in")) {
+      navigate("/check-in");
+      return;
+    }
+    if (c.includes("appointment") || c.includes("direction")) {
       navigate("/appointments");
       return;
     }
-    navigate("/navi", { replace: true, state: { mode: "thinking", prompt: choice, context: state.context } });
+    navigate("/navi", {
+      replace: true,
+      state: { mode: "thinking", prompt: `${choice} for Michael Carter PT0141`, context: state.context },
+    });
+  };
+
+  const renderResponseCards = (next: NaviGeneratedResponse) => {
+    const medical = getMedicalSummary(next);
+    const slots = getAppointmentSlots(next);
+
+    return (
+      <>
+        {medical?.vitals ? (
+          <div className="nm-card" style={{ marginTop: 10, padding: 12, boxShadow: "none" }}>
+            <div style={{ fontSize: "0.78rem", fontWeight: 800, color: "var(--nm-blue)", marginBottom: 8 }}>
+              Current vitals
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+              {Object.entries(medical.vitals)
+                .filter(([key]) => key !== "recorded_at")
+                .map(([key, value]) => (
+                  <div key={key} style={{ borderRadius: 10, background: "#fff", padding: 9 }}>
+                    <div style={{ fontSize: "0.68rem", color: "var(--nm-muted)", textTransform: "capitalize" }}>
+                      {key.replaceAll("_", " ")}
+                    </div>
+                    <div style={{ fontSize: "0.88rem", fontWeight: 800 }}>{value}</div>
+                  </div>
+                ))}
+            </div>
+          </div>
+        ) : null}
+
+        {medical?.abnormal_or_watch_items?.length ? (
+          <div className="nm-card" style={{ marginTop: 10, padding: 12, boxShadow: "none" }}>
+            <div style={{ fontSize: "0.78rem", fontWeight: 800, color: "#b45309", marginBottom: 8 }}>
+              Items to review
+            </div>
+            {medical.abnormal_or_watch_items.map((item) => (
+              <div
+                key={`${item.panel}-${item.name}`}
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  gap: 10,
+                  padding: "8px 0",
+                  borderTop: "1px solid #e2e8f0",
+                }}
+              >
+                <div>
+                  <div style={{ fontWeight: 800, fontSize: "0.86rem" }}>{item.name}</div>
+                  <div style={{ fontSize: "0.7rem", color: "var(--nm-muted)" }}>{item.panel}</div>
+                </div>
+                <div style={{ textAlign: "right" }}>
+                  <div style={{ fontWeight: 800, fontSize: "0.86rem" }}>{item.value}</div>
+                  <div style={{ fontSize: "0.7rem", color: "#b45309", textTransform: "capitalize" }}>
+                    {(item.status || "").replaceAll("_", " ")}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : null}
+
+        {medical?.care_gaps?.length ? (
+          <div className="nm-card" style={{ marginTop: 10, padding: 12, boxShadow: "none" }}>
+            <div style={{ fontSize: "0.78rem", fontWeight: 800, color: "var(--nm-teal)", marginBottom: 8 }}>
+              Recommended next steps
+            </div>
+            <ul style={{ margin: "0 0 0 16px", padding: 0, fontSize: "0.82rem", lineHeight: 1.45 }}>
+              {medical.care_gaps.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+
+        {slots.length ? (
+          <div className="nm-card" style={{ marginTop: 10, padding: 12, boxShadow: "none" }}>
+            <div style={{ fontSize: "0.78rem", fontWeight: 800, color: "var(--nm-blue)", marginBottom: 8 }}>
+              Appointment options
+            </div>
+            {slots.map((slot) => (
+              <button
+                key={`${slot.provider_name}-${slot.slot_start_ts}`}
+                type="button"
+                onClick={() => navigate("/schedule")}
+                style={{
+                  display: "block",
+                  width: "100%",
+                  textAlign: "left",
+                  border: "1px solid #dbeafe",
+                  borderRadius: 12,
+                  background: "#fff",
+                  padding: 10,
+                  marginTop: 8,
+                  cursor: "pointer",
+                }}
+              >
+                <div style={{ fontWeight: 800, fontSize: "0.88rem" }}>{slot.provider_name}</div>
+                <div style={{ fontSize: "0.78rem", color: "var(--nm-muted)" }}>{slot.clinic_name}</div>
+                <div style={{ fontSize: "0.78rem", marginTop: 4 }}>
+                  {prettyTime(slot.slot_start_ts)} · {slot.modality?.replace("_", " ")}
+                </div>
+              </button>
+            ))}
+          </div>
+        ) : null}
+      </>
+    );
   };
 
   return (
@@ -84,6 +234,8 @@ export function NaviOverlay() {
           width: "min(360px, 100%)",
           marginBottom: 24,
           textAlign: "center",
+          maxHeight: "calc(100dvh - 40px)",
+          overflowY: "auto",
         }}
       >
         <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
@@ -93,11 +245,11 @@ export function NaviOverlay() {
         <p className="nm-muted">
           {mode === "listening"
             ? "Speak or type when you’re ready."
-            : "I can help with scheduling, check-in, and visit summaries—not medical triage."}
+            : "I can help with scheduling, check-in, labs, medications, and visit summaries."}
         </p>
         {mode === "thinking" ? (
           <p style={{ fontSize: "0.72rem", color: "var(--nm-muted)", marginTop: 8, lineHeight: 1.4 }}>
-            Demo assistant — not medical advice. Do not enter sensitive health details.
+            Care navigation only. Navi does not diagnose, prescribe, or replace emergency care.
           </p>
         ) : null}
         {state.prompt ? (
@@ -120,9 +272,15 @@ export function NaviOverlay() {
             }}
           >
             <p style={{ margin: 0, fontSize: "0.92rem", lineHeight: 1.5 }}>{response.text}</p>
-            <p style={{ margin: "8px 0 0", fontSize: "0.74rem", color: "var(--nm-muted)" }}>
-              Source: {describeSource(response)}
-            </p>
+            {renderResponseCards(response)}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 10 }}>
+              <button type="button" className="nm-btn nm-btn-primary" style={{ padding: "10px 8px" }} onClick={() => navigate("/schedule")}>
+                Schedule
+              </button>
+              <button type="button" className="nm-btn nm-btn-ghost" style={{ padding: "10px 8px", border: "1px solid #c9d8ff" }} onClick={() => navigate("/postvisit/test-results")}>
+                View labs
+              </button>
+            </div>
             {response.structured ? (
               <details style={{ marginTop: 10 }}>
                 <summary style={{ cursor: "pointer", fontSize: "0.8rem", fontWeight: 600 }}>
@@ -191,17 +349,27 @@ export function NaviOverlay() {
             type="button"
             className="nm-btn nm-btn-ghost"
             style={{ width: "auto", flex: 1 }}
-            onClick={() => navigate("/navi", { replace: true, state: { mode: "listening" } })}
+            onClick={() =>
+              navigate("/navi", {
+                replace: true,
+                state: { mode: "thinking", prompt: "I feel sick. Review Michael Carter PT0141 chart context." },
+              })
+            }
           >
-            Mic demo
+            Talk to Navi
           </button>
           <button
             type="button"
             className="nm-btn nm-btn-ghost"
             style={{ width: "auto", flex: 1 }}
-            onClick={() => navigate("/navi", { replace: true, state: { mode: "thinking" } })}
+            onClick={() =>
+              navigate("/navi", {
+                replace: true,
+                state: { mode: "thinking", prompt: "What can you help Michael Carter PT0141 with today?" },
+              })
+            }
           >
-            Thinking demo
+            Ask Navi
           </button>
         </div>
       </div>

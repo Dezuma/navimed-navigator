@@ -43,8 +43,8 @@ export function SideMenu({ open, onClose }: Props) {
             ["/appointments", "Appointments"],
             ["/schedule", "Schedule"],
             ["/privacy", "Privacy & HIPAA"],
-            ["/demo-scenes", "Demo Scenes"],
-            ["/splash", "Restart demo"],
+            ["/demo-scenes", "Screen Library"],
+            ["/splash", "Restart"],
           ].map(([to, label]) => (
             <li key={to} style={{ marginBottom: 12 }}>
               <Link

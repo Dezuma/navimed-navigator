@@ -1,4 +1,4 @@
-export const demoMedicalProfile = {
+export const patientMedicalProfile = {
   patientId: "PT0141",
   displayName: "Michael Carter",
   conditions: ["Hypertension", "Family history of diabetes", "Recent elevated liver enzymes"],
@@ -26,5 +26,5 @@ export const demoMedicalProfile = {
     "Recheck blood pressure trend",
     "Discuss family history of diabetes at follow-up",
   ],
-  safetyNote: "Synthetic demo data only. NaviMed does not diagnose, prescribe, or replace clinical care.",
+  safetyNote: "For care navigation only. For new, worsening, or urgent symptoms, contact a clinician or emergency services.",
 };

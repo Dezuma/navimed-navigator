@@ -6,6 +6,8 @@ import { ScreenChrome } from "../components/ScreenChrome";
 import { visualAssets } from "../visual-assets";
 
 const SLOTS = ["9:00 AM", "9:30 AM", "10:00 AM", "10:30 AM", "11:00 AM", "2:00 PM", "3:30 PM"];
+const PROVIDER = "Dr. David Warren";
+const CLINIC = "NaviMed Downtown Primary Care";
 
 export function Schedule() {
   const navigate = useNavigate();
@@ -13,6 +15,8 @@ export function Schedule() {
   const reschedule = mode === "reschedule";
   const [day, setDay] = useState(2);
   const [slot, setSlot] = useState<string | null>("10:30 AM");
+  const [provider, setProvider] = useState(PROVIDER);
+  const [clinic, setClinic] = useState(CLINIC);
 
   const days = useMemo(() => {
     const out: { label: string; sub: string }[] = [];
@@ -28,6 +32,8 @@ export function Schedule() {
     return out;
   }, []);
 
+  const selectedDay = days[day];
+
   return (
     <ScreenChrome title={reschedule ? "Reschedule Visit" : "Schedule Visit"}>
       <div className="nm-scroll" style={{ flex: 1, display: "flex", flexDirection: "column" }}>
@@ -38,7 +44,7 @@ export function Schedule() {
         <h3 className="nm-h2" style={{ textAlign: "center", marginBottom: 4 }}>
           {reschedule
             ? "Got it! Let's find a better time for you."
-            : "Here's the next available appointments with Dr. Brooks."}
+            : `Here are available appointments with ${provider}.`}
         </h3>
         <img
           src={visualAssets.scheduling}
@@ -85,9 +91,23 @@ export function Schedule() {
             ? ["Need to leave by 3pm", "Can’t do mornings", "Prefer afternoons"]
             : ["Need to leave by 3pm", "Prefer in person", "Change provider"])
             .map((x) => (
-              <span key={x} className="nm-chip">
+              <button
+                key={x}
+                type="button"
+                className="nm-chip"
+                style={{ border: "none", cursor: "pointer" }}
+                onClick={() => {
+                  if (x === "Need to leave by 3pm") setSlot("10:00 AM");
+                  if (x === "Can’t do mornings" || x === "Prefer afternoons") setSlot("3:30 PM");
+                  if (x === "Change provider") {
+                    setProvider("Dr. Sarah Kim");
+                    setClinic("NaviMed Downtown Primary Care");
+                    setSlot("11:00 AM");
+                  }
+                }}
+              >
                 {x}
-              </span>
+              </button>
             ))}
         </div>
 
@@ -96,7 +116,17 @@ export function Schedule() {
           className="nm-btn nm-btn-primary"
           style={{ marginTop: "auto" }}
           disabled={!slot}
-          onClick={() => navigate("/booked")}
+          onClick={() =>
+            navigate("/booked", {
+              state: {
+                provider,
+                clinic,
+                dateLabel: selectedDay ? `${selectedDay.label}, Apr ${selectedDay.sub}` : "Wed, Apr 16",
+                time: slot,
+                rescheduled: reschedule,
+              },
+            })
+          }
         >
           {reschedule ? "Reschedule Visit" : "Schedule Visit"}
         </button>

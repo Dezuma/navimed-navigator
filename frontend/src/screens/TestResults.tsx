@@ -2,7 +2,7 @@ import { AskNaviBar } from "../components/AskNaviBar";
 import { CoreFlowPills } from "../components/CoreFlowPills";
 import { NaviMascot } from "../components/NaviMascot";
 import { ScreenChrome } from "../components/ScreenChrome";
-import { demoMedicalProfile } from "../demo-medical-data";
+import { patientMedicalProfile } from "../demo-medical-data";
 
 export function TestResults() {
   return (
@@ -22,14 +22,14 @@ export function TestResults() {
         </h2>
         <div className="nm-card" style={{ marginTop: 12 }}>
           <div style={{ background: "#7dd3c7", borderRadius: 8, padding: 8, marginBottom: 8, fontSize: "0.78rem", fontWeight: 700 }}>
-            Medical snapshot — {demoMedicalProfile.patientId}
+            Medical snapshot — {patientMedicalProfile.patientId}
           </div>
           <div style={{ fontSize: "0.72rem", color: "var(--nm-muted)", marginBottom: 8 }}>
-            {demoMedicalProfile.safetyNote}
+            {patientMedicalProfile.safetyNote}
           </div>
           <div style={{ fontSize: "0.76rem", fontWeight: 700, marginBottom: 4 }}>Vitals</div>
           <ul style={{ margin: "0 0 10px 16px", padding: 0, fontSize: "0.78rem", lineHeight: 1.35 }}>
-            {demoMedicalProfile.vitals.map(([label, value]) => (
+            {patientMedicalProfile.vitals.map(([label, value]) => (
               <li key={label}>{label}: {value}</li>
             ))}
           </ul>
@@ -37,13 +37,13 @@ export function TestResults() {
             Watch items
           </div>
           <ul style={{ margin: "8px 0 10px 16px", padding: 0, fontSize: "0.78rem", lineHeight: 1.35 }}>
-            {demoMedicalProfile.watchItems.map(([name, value, status, ref]) => (
+            {patientMedicalProfile.watchItems.map(([name, value, status, ref]) => (
               <li key={name}>{name}: {value} — {status} (ref {ref})</li>
             ))}
           </ul>
           <div style={{ fontSize: "0.76rem", fontWeight: 700, marginBottom: 4 }}>In range</div>
           <ul style={{ margin: "0 0 8px 16px", padding: 0, fontSize: "0.78rem", lineHeight: 1.35 }}>
-            {demoMedicalProfile.inRangeLabs.map(([name, value, ref]) => (
+            {patientMedicalProfile.inRangeLabs.map(([name, value, ref]) => (
               <li key={name}>{name}: {value} (ref {ref})</li>
             ))}
           </ul>

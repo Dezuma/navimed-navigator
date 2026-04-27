@@ -22,6 +22,10 @@ export function AskNaviBar({ placeholder = "Ask Navi…", context }: Props) {
     setQ("");
   };
 
+  const ask = (prompt: string) => {
+    navigate("/navi", { state: { mode: "thinking", prompt, context } });
+  };
+
   return (
     <div
       style={{
@@ -57,16 +61,13 @@ export function AskNaviBar({ placeholder = "Ask Navi…", context }: Props) {
         </button>
       </div>
       <div className="nm-chip-row">
-        {["Schedule a visit", "Reschedule", "Pre-visit prep"].map((c) => (
+        {["Explain labs", "Review meds list", "Schedule follow-up"].map((c) => (
           <button
             key={c}
             type="button"
             className="nm-chip"
             style={{ border: "none", cursor: "pointer" }}
-            onClick={() => {
-              if (c === "Schedule a visit" || c === "Reschedule") navigate("/schedule");
-              else setQ("Help me prepare for my visit");
-            }}
+            onClick={() => ask(`${c} for Michael Carter PT0141`)}
           >
             {c}
           </button>

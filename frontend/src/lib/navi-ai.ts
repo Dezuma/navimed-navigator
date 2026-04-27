@@ -26,7 +26,9 @@ type GenerateOptions = {
   onResponse?: (response: NaviGeneratedResponse) => void;
 };
 
-const API_URL = import.meta.env.VITE_NAVI_AI_ENDPOINT as string | undefined;
+const API_URL =
+  (import.meta.env.VITE_NAVI_AI_ENDPOINT as string | undefined) ||
+  (import.meta.env.DEV ? "http://127.0.0.1:8787/navi/respond" : undefined);
 const CALLBACK_URL = import.meta.env.VITE_NAVI_CALLBACK_URL as string | undefined;
 const DEMO_API_KEY = import.meta.env.VITE_NAVI_API_KEY as string | undefined;
 
@@ -42,8 +44,8 @@ const INTENTS: NaviIntent[] = ["schedule", "appointments", "prep", "summary", "g
 function inferIntent(prompt: string): NaviIntent {
   const p = prompt.toLowerCase();
   if (p.includes("schedule") || p.includes("book") || p.includes("reschedule")) return "schedule";
-  if (p.includes("appointment") || p.includes("check in")) return "appointments";
   if (p.includes("prepare") || p.includes("prep") || p.includes("bring")) return "prep";
+  if (p.includes("appointment") || p.includes("check in")) return "appointments";
   if (
     p.includes("summary") ||
     p.includes("result") ||

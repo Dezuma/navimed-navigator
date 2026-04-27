@@ -58,6 +58,6 @@
       "recheck blood pressure trend",
       "discuss family history of diabetes at follow-up"
     ],
-    "safety_note": "Synthetic demo data only. NaviMed does not diagnose, prescribe, or replace clinical care."
+    "safety_note": "For care navigation only. For new, worsening, or urgent symptoms, contact a clinician or emergency services."
   }
 }
