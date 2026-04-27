@@ -1,3 +1,5 @@
+import { patientMedicalProfile } from "../demo-medical-data";
+
 export type NaviIntent = "schedule" | "appointments" | "prep" | "summary" | "general";
 
 export type FallbackReason =
@@ -78,37 +80,128 @@ function sanitizeIntent(raw: unknown, prompt: string): NaviIntent {
   return inferIntent(prompt);
 }
 
+function isMedicalPrompt(prompt: string): boolean {
+  return /\b(lab|labs|liver|enzyme|enzymes|alt|ast|glucose|cholesterol|blood pressure|bp|vital|vitals|med|meds|medication|medications|allerg|condition|medical|result|results|sick|ill|unwell|symptom|symptoms|pain|nausea|dizzy|fever|tired|fatigue)\b/i.test(prompt);
+}
+
+function localMedicalSummary() {
+  return {
+    vitals: Object.fromEntries(patientMedicalProfile.vitals),
+    abnormal_or_watch_items: patientMedicalProfile.watchItems.map(([name, value, status]) => ({
+      panel: name === "Fasting glucose" ? "Glucose" : "Liver Function Panel",
+      name,
+      value,
+      status: status.toLowerCase().replaceAll(" ", "_"),
+    })),
+    care_gaps: patientMedicalProfile.careGaps,
+    safety_note: patientMedicalProfile.safetyNote,
+  };
+}
+
+function localSlotOptions() {
+  return [
+    {
+      slot_start_ts: "2026-04-24T13:00:00",
+      provider_name: "Dr. David Warren",
+      clinic_name: "NaviMed Downtown Primary Care",
+      modality: "in_person",
+      score: 4.053,
+    },
+    {
+      slot_start_ts: "2026-04-28T11:30:00",
+      provider_name: "Dr. David Warren",
+      clinic_name: "NaviMed Downtown Primary Care",
+      modality: "in_person",
+      score: 3.951,
+    },
+    {
+      slot_start_ts: "2026-04-22T11:00:00",
+      provider_name: "Dr. Sarah Kim",
+      clinic_name: "NaviMed Downtown Primary Care",
+      modality: "telehealth",
+      score: 4.166,
+    },
+  ];
+}
+
+function localDictionaryText(prompt: string, intent: NaviIntent): string {
+  const vitals = "blood pressure 138/86 mmHg, heart rate 78 bpm, oxygen saturation 98%, and temperature 98.4 F";
+  const watch = "ALT 68 U/L (high), AST 42 U/L (slightly high), and fasting glucose 104 mg/dL (slightly high)";
+  const meds = "lisinopril 10 mg daily";
+  const allergy = "penicillin";
+  const careGaps = patientMedicalProfile.careGaps.join("; ");
+
+  if (/\b(sick|ill|unwell|symptom|symptoms|pain|nausea|dizzy|fever|tired|fatigue)\b/i.test(prompt)) {
+    return `I'm sorry you're not feeling well. I can organize Michael Carter's chart context for a provider, but I cannot diagnose or recommend treatment. Current vitals show ${vitals}. His chart includes hypertension, family history of diabetes, recent elevated liver enzymes, medication ${meds}, and allergy to ${allergy}. Items to review include ${watch}. For new, worsening, or urgent symptoms, contact a clinician or emergency services.`;
+  }
+
+  if (/\b(med|meds|medication|medications|allerg|allergy|allergies)\b/i.test(prompt)) {
+    return `For Michael Carter's medication review, I found medication on file: ${meds}. Listed allergy: ${allergy}. Current vitals show ${vitals}. Items to review with the provider include ${watch}.`;
+  }
+
+  if (/\b(lab|labs|liver|enzyme|enzymes|alt|ast|glucose|cholesterol|result|results)\b/i.test(prompt)) {
+    return `For Michael Carter's lab review, the watch items are ${watch}. In-range context includes total cholesterol 176 mg/dL, LDL 94 mg/dL, HDL 54 mg/dL, and bilirubin 0.8 mg/dL. His current vitals show ${vitals}.`;
+  }
+
+  if (intent === "schedule") {
+    return "I found follow-up options for Michael Carter: Dr. David Warren at NaviMed Downtown Primary Care on Fri, Apr 24 at 1:00 PM; Dr. David Warren on Tue, Apr 28 at 11:30 AM; and Dr. Sarah Kim by telehealth on Wed, Apr 22 at 11:00 AM. I can help compare by modality, clinic, or timing.";
+  }
+
+  if (intent === "prep") {
+    return `For Michael Carter's visit prep, bring an ID, insurance card, and medication list. His chart shows ${meds}, allergy to ${allergy}, and care gaps: ${careGaps}.`;
+  }
+
+  if (intent === "appointments") {
+    return "I can help with Michael Carter's appointment details, check-in, reminders, directions, labs, medications, and follow-up scheduling. Ask me what you want to review next.";
+  }
+
+  if (intent === "summary") {
+    return `Michael Carter's follow-up summary should focus on care gaps: ${careGaps}. I can also explain labs, review medications, or schedule the follow-up appointment.`;
+  }
+
+  if (isMedicalPrompt(prompt)) {
+    return `For Michael Carter's chart, I found ${vitals}. Medication on file is ${meds}; listed allergy is ${allergy}. Items to review include ${watch}.`;
+  }
+
+  return "I can help Michael Carter with labs, medications, blood pressure, visit prep, appointment details, check-in, directions, and follow-up scheduling. Ask me in your own words and I will use the available chart and scheduling context.";
+}
+
+function localStructured(intent: NaviIntent) {
+  return {
+    event_type: intent === "schedule" ? "SchedulingRecommendationReady" : "CareNavigationReady",
+    patient_id: "PT0141",
+    intent,
+    next_steps: intent === "schedule" ? ["select_slot", "confirm_appointment"] : ["review_context", "choose_next_action"],
+    follow_up_window: "2 weeks",
+    follow_up_actions: ["view_available_times", "review_labs", "review_medications"],
+    patient_questions_pending: false,
+    reentry_prompt: "What would you like to do next?",
+    available_time_slots: localSlotOptions(),
+    medical_context_summary: localMedicalSummary(),
+  };
+}
+
+function localFollowUps(prompt: string, intent: NaviIntent): string[] {
+  if (isMedicalPrompt(prompt)) return ["Explain liver enzymes", "Review meds list", "Schedule follow-up", "Show care gaps"];
+  if (intent === "schedule") return ["Show telehealth options", "Compare earliest slots", "Schedule follow-up"];
+  if (intent === "prep") return ["Review meds list", "Show care gaps", "Open check-in"];
+  if (intent === "appointments") return ["Open appointments", "Start check-in", "Get directions"];
+  return ["Explain labs", "Review meds list", "Schedule follow-up"];
+}
+
 function localFallback(prompt: string, reason?: FallbackReason): NaviGeneratedResponse {
   const intent = inferIntent(prompt);
-  const byIntent: Record<NaviIntent, Omit<NaviGeneratedResponse, "source" | "fallbackReason">> = {
-    schedule: {
-      text: "I can help you schedule or reschedule with Dr. Brooks. Want me to take you to available time slots now?",
-      intent,
-      followUps: ["Show available slots", "Find earliest opening", "Reschedule current visit"],
-    },
-    appointments: {
-      text: "I found your upcoming visit details. I can open appointments, help with check-in steps, or send reminder guidance.",
-      intent,
-      followUps: ["Open appointments", "Start check-in", "What should I bring?"],
-    },
-    prep: {
-      text: "For visit prep: bring your ID, insurance card, medication list, and any recent symptom notes. I can generate a quick checklist.",
-      intent,
-      followUps: ["Create prep checklist", "Explain check-in flow", "Open visit details"],
-    },
-    summary: {
-      text: "I can provide a plain-language summary and next steps from your recent visit, including follow-up reminders.",
-      intent,
-      followUps: ["Show summary", "List next steps", "Set follow-up reminder"],
-    },
-    general: {
-      text: "I can help with scheduling, visit prep, check-in, and summaries. Tell me what you need and I will guide you step by step.",
-      intent,
-      followUps: ["Schedule a visit", "Prepare for my appointment", "Explain last visit summary"],
-    },
-  };
   return {
-    ...byIntent[intent],
+    text: localDictionaryText(prompt, intent),
+    intent,
+    followUps: localFollowUps(prompt, intent),
+    structured: localStructured(intent),
+    evidence: {
+      patient_id: "PT0141",
+      local_chart_context: true,
+      medical_context: patientMedicalProfile,
+      top_recommendations: localSlotOptions(),
+    },
     source: "local-fallback",
     fallbackReason: reason,
   };
