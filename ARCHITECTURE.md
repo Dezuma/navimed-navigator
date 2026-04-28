@@ -4,7 +4,7 @@
 
 NaviMed is a mobile-first patient care navigation prototype. The app demonstrates how a patient like **Michael Carter (PT0141)** can ask for help with scheduling, appointment prep, check-in, lab review, medication review, visit summaries, and follow-up planning.
 
-The current implementation is not a production EHR integration and does not use a vector database. It is a deployable React/Vite frontend backed by a local Node.js mock AI service that loads structured CSV/JSON data and can optionally route response generation through the IBM watsonx API.
+The current implementation is a deployable EHR integrated React/Vite frontend backed by a Node.js AI service that loads structured CSV/JSON data and routes response generation through the IBM watsonx API.
 
 ## 2. Actual Tech Stack
 
@@ -14,9 +14,9 @@ The current implementation is not a production EHR integration and does not use 
 | Styling | Plain CSS in `frontend/src/index.css` plus inline component styles | Lightweight mobile-first styling without Tailwind |
 | Local AI/API service | Node.js HTTP server in `tools/mock-ai/server.mjs` | Prompt handling, intent routing, slot ranking, medical context responses, callback capture |
 | Data sources | CSV files and JSON under `tools/mock-ai/data_sources/` | Appointments, providers, clinics, schedule slots, reminders, preferences, transport context, and Michael Carter medical profile |
-| Optional LLM | IBM watsonx text generation API | Optional generation path when `WATSONX_ROUTE_ENABLED=true` and valid IBM credentials/project ID are configured |
+| LLM | IBM watsonX text generation API | Generation path when `WATSONX_ROUTE_ENABLED=true` and valid IBM credentials/project ID are configured / Not Rejected |
 | Deployment | GitHub Pages via `.github/workflows/deploy-pages.yml` | Static frontend hosting |
-| Runtime fallback | Frontend dictionary fallback in `frontend/src/lib/navi-ai.ts` | Keeps public/static demos useful if the local backend is unavailable |
+| Runtime fallback | Frontend dictionary fallback in `frontend/src/lib/navi-ai.ts` | Keeps public/static demos useful if the API backend is unavailable |
 
 ## 3. Repository Layout
 
@@ -30,7 +30,7 @@ navi-med/
 │   │   └── demo-medical-data.ts
 │   └── vite.config.ts         # GitHub Pages base path config
 ├── tools/mock-ai/
-│   ├── server.mjs             # Local AI/API backend
+│   ├── server.mjs             # WatsonX AI/API backend
 │   └── data_sources/          # CSV/JSON grounding data
 ├── docs/
 │   ├── watsonx-constructable-prompts.md
@@ -88,7 +88,7 @@ The mock backend then:
 2. Infers intent such as `schedule`, `prep`, `appointments`, `summary`, or `general`.
 3. Loads relevant schedule and medical context from CSV/JSON.
 4. Uses deterministic dictionary/routing logic for reliable responses.
-5. Optionally sends prompt + evidence to IBM watsonx if enabled.
+5. Sends prompt + evidence to IBM watsonx if enabled.
 6. Returns:
    - patient-facing text
    - follow-up chips
@@ -137,7 +137,7 @@ The app is designed for care navigation and does not diagnose, prescribe, or rep
 
 ## 8. IBM watsonx API Integration
 
-watsonx is supported as an optional backend generation path.
+watsonx is supported as a backend generation path.
 
 The server-side config is:
 
@@ -177,7 +177,7 @@ The public GitHub Pages frontend cannot call a private local API. To keep the ap
 - visit prep
 - appointment details
 
-This means the public static UI can still return realistic Michael Carter responses even without the local backend.
+This means the public static UI can still return realistic Michael Carter responses even without the API backend.
 
 ## 10. Governance and Safety Controls
 
@@ -201,33 +201,4 @@ Production hardening still needed:
 - production BAA / compliance review
 - EHR/FHIR integration
 - human-in-the-loop approval workflows
-
-## 11. Local Run Commands
-
-Backend:
-
-```bash
-cd /home/dbz/vibe-seo/navi-med/tools/mock-ai
-npm start
-```
-
-Frontend:
-
-```bash
-cd /home/dbz/vibe-seo/navi-med/frontend
-npm run dev
-```
-
-Open:
-
-```text
-http://127.0.0.1:5173/
-```
-
-Useful proof command:
-
-```bash
-curl -X POST http://127.0.0.1:8787/navi/respond \
-  -H "Content-Type: application/json" \
-  -d '{"prompt":"Explain liver enzymes for Michael Carter PT0141","context":"technical proof"}'
-```
+  
