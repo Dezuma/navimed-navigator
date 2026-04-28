@@ -1,48 +1,233 @@
-**🏥 NaviMed Navigator Architecture**
+# NaviMed Technical Architecture
 
-**1. System Overview**
+## 1. System Overview
 
-NaviMed Navigator is a specialized RAG-based AI agent designed to provide reliable, patient-aware assistance. The system ensures high-fidelity information retrieval from sensitive medical documents.
+NaviMed is a mobile-first patient care navigation prototype. The app demonstrates how a patient like **Michael Carter (PT0141)** can ask for help with scheduling, appointment prep, check-in, lab review, medication review, visit summaries, and follow-up planning.
 
+The current implementation is not a production EHR integration and does not use a vector database. It is a deployable React/Vite frontend backed by a local Node.js mock AI service that loads structured CSV/JSON data and can optionally route response generation through the IBM watsonx API.
 
-**2. Core Architecture Stack**
+## 2. Actual Tech Stack
 
-    Frontend- Possible React + Vite (for high performance) + Tailwind CSS (for rapid, accessible UI styling).
+| Layer | Technology Used | Purpose |
+| --- | --- | --- |
+| Frontend | React 18, TypeScript, Vite, React Router | Mobile patient showcase UI and hash-routed GitHub Pages deployment |
+| Styling | Plain CSS in `frontend/src/index.css` plus inline component styles | Lightweight mobile-first styling without Tailwind |
+| Local AI/API service | Node.js HTTP server in `tools/mock-ai/server.mjs` | Prompt handling, intent routing, slot ranking, medical context responses, callback capture |
+| Data sources | CSV files and JSON under `tools/mock-ai/data_sources/` | Appointments, providers, clinics, schedule slots, reminders, preferences, transport context, and Michael Carter medical profile |
+| Optional LLM | IBM watsonx text generation API | Optional generation path when `WATSONX_ROUTE_ENABLED=true` and valid IBM credentials/project ID are configured |
+| Deployment | GitHub Pages via `.github/workflows/deploy-pages.yml` | Static frontend hosting |
+| Runtime fallback | Frontend dictionary fallback in `frontend/src/lib/navi-ai.ts` | Keeps public/static demos useful if the local backend is unavailable |
 
-    Agent Orchestrator- Manages state, conversation memory, and tool-invocation logic.
+## 3. Repository Layout
 
-    Retrieval Pipeline- Embedding Model -> Converts medical terminology into vector space.
+```text
+navi-med/
+├── frontend/                 # React + Vite SPA
+│   ├── src/
+│   │   ├── components/        # Phone shell, side menu, Ask Navi bar
+│   │   ├── screens/           # Patient, scheduling, visit, post-visit, provider/admin screens
+│   │   ├── lib/navi-ai.ts     # Frontend AI client + local dictionary fallback
+│   │   └── demo-medical-data.ts
+│   └── vite.config.ts         # GitHub Pages base path config
+├── tools/mock-ai/
+│   ├── server.mjs             # Local AI/API backend
+│   └── data_sources/          # CSV/JSON grounding data
+├── docs/
+│   ├── watsonx-constructable-prompts.md
+│   └── demo-script.md
+└── .github/workflows/
+    └── deploy-pages.yml
+```
 
-        Vector Database- Stores clinical documents/guidelines for semantic search.
+## 4. Data Sources Used
 
-    Reasoning Engine- An LLM tuned for medical domain accuracy, utilizing RAG to minimize hallucinations.
+The backend loads these files at startup:
 
+```text
+tools/mock-ai/data_sources/appointments.csv
+tools/mock-ai/data_sources/providers.csv
+tools/mock-ai/data_sources/clinics.csv
+tools/mock-ai/data_sources/schedule_slots.csv
+tools/mock-ai/data_sources/scheduling_preferences.csv
+tools/mock-ai/data_sources/reminder_events.csv
+tools/mock-ai/data_sources/transport_context.csv
+tools/mock-ai/data_sources/medical_profiles.json
+```
 
-**3. Integrated Tools & External Systems**
+The current proof dataset includes:
 
-The following outlines how NaviMed Navigator bridges the gap between raw data and clinical insights:
+- 220 appointments
+- 1,136 schedule slots
+- 8 providers
+- 4 clinics
+- 180 reminder events
+- 150 scheduling preferences
+- 170 transport records
+- 1 medical profile for Michael Carter / `PT0141`
 
-**Integration Layer	-> Technology -> Source	Purpose**
+## 5. AI / Agent Flow
 
-Knowledge Base ->	Proprietary Medical Docs ->	Grounding the agent in verified clinical protocols.
+The frontend calls:
 
-Vector Indexing	-> Pinecone / Weaviate ->	Efficient lookup of specific symptoms/procedures.
+```text
+POST http://127.0.0.1:8787/navi/respond
+```
 
-Reasoning Core ->	LLM API (CloudHealthcare/Claude/GPT) ->	Natural language synthesis and reasoning.
+with:
 
-API Connectors ->	FHIR / REST APIs -> Integration with EHR systems (Electronic Health Records).
+```json
+{
+  "prompt": "Explain liver enzymes for Michael Carter PT0141",
+  "context": "live chat demo"
+}
+```
 
-Auth/Security	-> Clerk / OAuth	-> Ensuring HIPAA-compliant access (where applicable).
+The mock backend then:
 
+1. Extracts or defaults the patient ID (`PT0141`).
+2. Infers intent such as `schedule`, `prep`, `appointments`, `summary`, or `general`.
+3. Loads relevant schedule and medical context from CSV/JSON.
+4. Uses deterministic dictionary/routing logic for reliable responses.
+5. Optionally sends prompt + evidence to IBM watsonx if enabled.
+6. Returns:
+   - patient-facing text
+   - follow-up chips
+   - structured JSON
+   - evidence snapshots
 
-**4. Data Flow Logic**
+## 6. Scheduling Logic
 
-NaviMed Navigator follows a strictly controlled workflow:
+Appointment recommendations are generated in `tools/mock-ai/server.mjs` using:
 
-    User Input- The query is sanitized by the Agent Orchestrator.
+- specialty match
+- modality match
+- same-provider preference
+- time-of-day preference
+- clinic access
+- soonest availability
+- provider lateness risk
 
-    Intent Mapping- The LLM determines if an external API (like a patient record search) is required.
+The output includes ranked appointment options with provider, clinic, time, modality, and score.
 
-    Context Retrieval- The "Retriever Module" pulls relevant medical context via Vector search.
+## 7. Medical Context Logic
 
-    Final Synthesis- The "Generator Module" constructs an evidence-based answer, including citations from the retrieved medical literature.
+The medical response path uses `tools/mock-ai/data_sources/medical_profiles.json`.
+
+For Michael Carter, the app can respond to prompts such as:
+
+- `I feel sick`
+- `Explain liver enzymes`
+- `Review meds list`
+- `Show care gaps`
+- `Schedule follow-up`
+
+Current medical data includes:
+
+- blood pressure: `138/86 mmHg`
+- heart rate: `78 bpm`
+- oxygen saturation: `98%`
+- temperature: `98.4 F`
+- medication: `lisinopril 10 mg daily`
+- allergy: `penicillin`
+- ALT: `68 U/L`
+- AST: `42 U/L`
+- fasting glucose: `104 mg/dL`
+
+The app is designed for care navigation and does not diagnose, prescribe, or replace emergency care.
+
+## 8. IBM watsonx API Integration
+
+watsonx is supported as an optional backend generation path.
+
+The server-side config is:
+
+```bash
+cd tools/mock-ai
+export WATSONX_APIKEY_FILE=/home/dbz/Downloads/apiWatson
+export WATSONX_PROJECT_ID=3a59db38-a8bc-4033-b779-8a3f2085aefe
+export WATSONX_REGION=us-south
+export WATSONX_MODEL=ibm/granite-3-8b-instruct
+export WATSONX_ROUTE_ENABLED=true
+npm start
+```
+
+When enabled, `server.mjs`:
+
+1. Reads the IBM API key from `WATSONX_APIKEY_FILE`.
+2. Exchanges it for an IAM bearer token.
+3. Calls the watsonx text generation endpoint:
+
+```text
+https://{region}.ml.cloud.ibm.com/ml/v1/text/generation?version=2023-05-29
+```
+
+4. Sends prompt, intent, top ranked slots, follow-up appointment, and medical context as evidence.
+5. Falls back to deterministic local responses if watsonx is unavailable or authentication fails.
+
+The current app does **not** expose watsonx credentials to the frontend. Credentials stay in the local Node backend.
+
+## 9. Frontend Fallback Behavior
+
+The public GitHub Pages frontend cannot call a private local API. To keep the app usable, `frontend/src/lib/navi-ai.ts` includes a local dictionary fallback for common prompts:
+
+- symptoms / “I feel sick”
+- labs / liver enzymes
+- medications / allergies
+- scheduling / follow-up
+- visit prep
+- appointment details
+
+This means the public static UI can still return realistic Michael Carter responses even without the local backend.
+
+## 10. Governance and Safety Controls
+
+Current controls include:
+
+- no diagnosis / no prescribing language in prompts and responses
+- emergency escalation wording for urgent or worsening symptoms
+- input length limits for body, prompt, and context
+- per-IP rate limiting on the local API
+- optional API key auth via `NAVI_API_KEY`
+- localhost-focused CORS rules
+- callback redaction and append-only callback logging
+- no browser-exposed watsonx API key
+
+Production hardening still needed:
+
+- real identity and role-based access control
+- encrypted persistence for PHI
+- consent management
+- immutable audit logs
+- production BAA / compliance review
+- EHR/FHIR integration
+- human-in-the-loop approval workflows
+
+## 11. Local Run Commands
+
+Backend:
+
+```bash
+cd /home/dbz/vibe-seo/navi-med/tools/mock-ai
+npm start
+```
+
+Frontend:
+
+```bash
+cd /home/dbz/vibe-seo/navi-med/frontend
+npm run dev
+```
+
+Open:
+
+```text
+http://127.0.0.1:5173/
+```
+
+Useful proof command:
+
+```bash
+curl -X POST http://127.0.0.1:8787/navi/respond \
+  -H "Content-Type: application/json" \
+  -d '{"prompt":"Explain liver enzymes for Michael Carter PT0141","context":"technical proof"}'
+```
